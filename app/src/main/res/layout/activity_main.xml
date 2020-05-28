@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="#ff9e22"
     android:gravity="center"
-    tools:context=".general.MainActivity">
+    tools:context=".General.Splash">
 
     <ImageView
         android:id="@+id/img"

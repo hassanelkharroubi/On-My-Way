@@ -1,4 +1,4 @@
-package com.example.onmyway.general;
+package com.example.onmyway.General;
 
 import android.content.Context;
 import android.content.Intent;

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:id="@+id/login"
     android:orientation="vertical"
-    tools:context=".general.Login">
+    tools:context=".General.Login">
     <include
         layout="@layout/toolbar_layout"/>
 

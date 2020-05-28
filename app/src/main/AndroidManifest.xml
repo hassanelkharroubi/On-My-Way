@@ -46,8 +46,8 @@
             android:label="@string/title_activity_maps" />
         <activity android:name=".administrateur.View.Home" />
         <activity android:name=".administrateur.View.RegisterActivity" />
-        <activity android:name=".general.Login" />
-        <activity android:name=".general.MainActivity">
+        <activity android:name=".General.Login" />
+        <activity android:name=".General.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

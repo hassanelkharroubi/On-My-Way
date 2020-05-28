@@ -1,11 +1,10 @@
-package com.example.onmyway.general;
+package com.example.onmyway.General;
 
 
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -16,7 +15,6 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -28,7 +26,6 @@ import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.User.View.HomeUser;
-import com.example.onmyway.Utils.CheckLogin;
 import com.example.onmyway.Utils.Constants;
 import com.example.onmyway.Utils.CustomToast;
 import com.example.onmyway.Utils.DialogMsg;
@@ -68,7 +65,7 @@ public class Login extends AppCompatActivity {
     private boolean mLocationPermissionGranted=false;
 
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,10 +74,9 @@ public class Login extends AppCompatActivity {
             // finish();
             Log.d(TAG, "google play services are not correct");
 
-
+        getLocationPermission();
 
         FirebaseUser user= CustomFirebase.getCurrentUser();
-
 
         ref= CustomFirebase.getDataRefLevel1(getResources().getString(R.string.UserData));
 
@@ -91,7 +87,6 @@ public class Login extends AppCompatActivity {
                 Intent intent=new Intent(Login.this, Home.class);
                 startActivity(intent);
                 finish();
-
                 return;
             }
             UserDB userDB=new UserDB(Login.this);
@@ -121,10 +116,8 @@ public class Login extends AppCompatActivity {
         String password = editTextPassword.getText().toString();
         if(!isEmail(email) || password.isEmpty())
         {
-
             CustomToast.toast(this, "veuillez valider soit email soit le mot de passe");
             return;
-
 
         }
 
@@ -318,7 +311,7 @@ public class Login extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (CheckLogin.toLogin(this)) finish();
+
         if(checkGooglePlayServices())
         {
             getLocationPermission();

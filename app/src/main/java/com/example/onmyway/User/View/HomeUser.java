@@ -23,13 +23,13 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.onmyway.General.Login;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.DestinationDB;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.CheckLogin;
 import com.example.onmyway.Utils.Constants;
-import com.example.onmyway.general.Login;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -243,6 +243,14 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
     }//end of onResume
 
+    @Override
+    public void onBackPressed() {
+
+        super.onBackPressed();
+        Log.d(TAG, "you are in onBackPressed");
+        DestinationDB destinationDB = new DestinationDB(this);
+        destinationDB.deleteDestination();
+    }
 
     //handle the result of startActivityForResult
     @Override
