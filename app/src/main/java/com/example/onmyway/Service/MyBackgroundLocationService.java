@@ -29,7 +29,7 @@ public class MyBackgroundLocationService extends Service {
     private static final String TAG= "Background";
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
-    private String CHANNEL_ID = "my_channel_01";
+    //  private String CHANNEL_ID = "my_channel_01";
 
     //data base
     private DatabaseReference mDatabase;
@@ -78,7 +78,7 @@ public class MyBackgroundLocationService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, 0);
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        Notification notification = new NotificationCompat.Builder(this, App.CHANNEL_ID)
                 .setContentTitle("GPS SERVICES")
                 .setContentText("Location service is running in the background")
                 .setSmallIcon(R.mipmap.ic_launcher)

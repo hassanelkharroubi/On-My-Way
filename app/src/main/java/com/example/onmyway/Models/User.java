@@ -7,17 +7,19 @@ public class User {
     private String password;
     //user id==cin
     private String cin;
+    private boolean transporter;
     public User()
     {
         //this Constructor is for DataSnapShot for firebase
         
     }
 
-    public User(String fullname, String email, String password, String id) {
+    public User(String fullname, String email, String password, String id, boolean transporter) {
         this.fullName = fullname;
         this.email = email;
         this.password = password;
         this.cin = id;
+        this.transporter = transporter;
     }
 
     public String getfullName() {
@@ -54,4 +56,11 @@ public class User {
         this.cin = id;
     }
 
+    public boolean isTransporter() {
+        return transporter;
+    }
+
+    public void setTransporter(boolean transporter) {
+        this.transporter = transporter;
+    }
 }
