@@ -9,9 +9,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 import androidx.annotation.Nullable;
 
 
-public class Admin extends SQLiteOpenHelper {
+public class Admin_transporter_db extends SQLiteOpenHelper {
 
-    public Admin(@Nullable Context context) {
+    public Admin_transporter_db(@Nullable Context context) {
         super(context, Utils.DATABASE_NAME, null, Utils.DATABASE_VERSION);
     }
 
@@ -22,7 +22,8 @@ public class Admin extends SQLiteOpenHelper {
                 Utils.CIN + " VARCHAR(10) PRIMARY KEY," +
                 Utils.NAME + " VARCHAR(30)," +
                 Utils.EMAIL + " VARCHAR(30)," +
-                Utils.PASSWORD + " VARCHAR(30))";
+                Utils.PASSWORD + " VARCHAR(30)," +
+                Utils.TRANSPORTER + " INT)";
 
         db.execSQL(CREATE_ADMIN_TABLE);
         db.close();
@@ -34,18 +35,20 @@ public class Admin extends SQLiteOpenHelper {
 
         String admin = "SELECT * FROM " + Utils.TABLE_NAME;
         User user = null;
+        boolean isTransporter;
 
 
         Cursor cursor = database.rawQuery(admin, null);
 
         if (cursor.moveToFirst()) {
             do {
-
+                //if 0 that is mean is admin
+                isTransporter = cursor.getInt(cursor.getColumnIndex(Utils.TRANSPORTER)) == 1;
 
                 user = new User(cursor.getString(cursor.getColumnIndex(Utils.NAME)),
                         cursor.getString(cursor.getColumnIndex(Utils.EMAIL)),
                         cursor.getString(cursor.getColumnIndex(Utils.PASSWORD)),
-                        cursor.getString(cursor.getColumnIndex(Utils.CIN)), false);
+                        cursor.getString(cursor.getColumnIndex(Utils.CIN)), isTransporter);
 
             } while (cursor.moveToNext());
         }
@@ -64,6 +67,12 @@ public class Admin extends SQLiteOpenHelper {
     public void addAdmin(User user) {
 
         SQLiteDatabase database = this.getWritableDatabase();
+        //we will use that in Login to verfiy if the usrr is admin or non
+        int isTransporter;
+        if (user.isTransporter())
+            isTransporter = 1;
+        else
+            isTransporter = 0;
 
 
         ContentValues contentValues = new ContentValues();
@@ -72,6 +81,7 @@ public class Admin extends SQLiteOpenHelper {
         contentValues.put(Utils.NAME, user.getfullName());
         contentValues.put(Utils.EMAIL, user.getEmail());
         contentValues.put(Utils.PASSWORD, user.getPassword());
+        contentValues.put(Utils.TRANSPORTER, isTransporter);
 
         database.insert(Utils.TABLE_NAME, null, contentValues);
         database.close();
@@ -90,12 +100,14 @@ public class Admin extends SQLiteOpenHelper {
     private class Utils {
         private static final int DATABASE_VERSION = 1;
         private static final String DATABASE_NAME = "AdminDB";
-        private static final String TABLE_NAME = "Admin";
+        private static final String TABLE_NAME = "Admin_transporter";
 
-        private static final String CIN = "cin";
+
         private static final String NAME = "fullname";
         private static final String EMAIL = "email";
-        private static final String PASSWORD = "PASSWORD";
+        private static final String PASSWORD = "password";
+        private static final String CIN = "cin";
+        private static final String TRANSPORTER = "transporter";
 
     }
 

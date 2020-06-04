@@ -22,7 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.example.onmyway.Models.Admin;
+import com.example.onmyway.Models.Admin_transporter_db;
 import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
@@ -64,7 +64,7 @@ public class Login extends AppCompatActivity {
     private boolean gps_enabled = false;
     private boolean mLocationPermissionGranted = false;
     //local db to save the current register admin
-    private Admin admin;
+    private Admin_transporter_db admin_transporter_db;
 
 
     @Override
@@ -78,7 +78,7 @@ public class Login extends AppCompatActivity {
         getLocationPermission();
 
         FirebaseUser user = CustomFirebase.getCurrentUser();
-        admin = new Admin(this);
+        admin_transporter_db = new Admin_transporter_db(this);
 
 
         ref = CustomFirebase.getDataRefLevel1(getResources().getString(R.string.UserData));
