@@ -99,16 +99,26 @@
             android:padding="10dp"
             android:textColorHint="@color/forText" />
 
+        <Switch
+            android:id="@+id/check"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:layout_weight="0"
+            android:checked="true"
+            android:text="Transporteur" />
+
         <Button
             android:layout_width="250dp"
             android:layout_height="50dp"
             android:layout_gravity="center"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:background="@drawable/button"
             android:elevation="40dp"
             android:fontFamily="sans-serif"
-            android:text="inscription"
             android:onClick="register"
+            android:text="inscription"
             android:textColor="#fff"
             android:textSize="16sp"
             android:textStyle="bold" />

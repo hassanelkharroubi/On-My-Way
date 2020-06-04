@@ -23,5 +23,6 @@
     <string name="Start">Commencer le travail</string>
     <string name="Stop">Arreter le travail</string>
     <string name="showDirection">afficher la direction</string>
+    <string name="Admin">Full name</string>
 
 </resources>

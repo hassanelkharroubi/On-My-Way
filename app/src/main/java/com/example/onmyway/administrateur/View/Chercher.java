@@ -196,10 +196,15 @@ public class Chercher extends AppCompatActivity {
                             idUserInFireBase = snapshot.getKey();
                             if (delete) {
                                 User deleteUser = snapshot.getValue(User.class);
+
                                 CustomFirebase.getUserAuth().signOut();
+
                                 CustomFirebase.DeleteUser(deleteUser.getEmail(), deleteUser.getPassword());
+
                                 refUserData.child(idUserInFireBase).removeValue();
+                                dialogMsg.hideDialog();
                                 CustomFirebase.getUserAuth().signInWithEmailAndPassword(Administrateur.email, Administrateur.password)
+
                                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                                             @Override
                                             public void onComplete(@NonNull Task<AuthResult> task) {
@@ -209,7 +214,7 @@ public class Chercher extends AppCompatActivity {
                                             }
                                         });
 
-                                dialogMsg.hideDialog();
+
                                 return;
                             }
                             dialogMsg.hideDialog();

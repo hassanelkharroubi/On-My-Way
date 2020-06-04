@@ -97,8 +97,10 @@ public class ListAllUser extends AppCompatActivity {
                     for (DataSnapshot userSnapshot: dataSnapshot.getChildren())
                     {
                         user = userSnapshot.getValue(User.class);
-                        usersFireBase.add(user);
-
+                        //filter between admin and transporter
+                        //add tranporter only to recyclerView
+                        if (user.isTransporter())
+                            usersFireBase.add(user);
                     }
                     userDB.addUsers(usersFireBase);
                     setAdapter(usersFireBase);

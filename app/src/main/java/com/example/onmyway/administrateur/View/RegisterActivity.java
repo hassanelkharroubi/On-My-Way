@@ -10,6 +10,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Switch;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -115,9 +116,10 @@ public class RegisterActivity extends AppCompatActivity {
                                 myRef.child( mAuth.getUid()).setValue(user);
 
                                 //i the same time we have to add this user to local data base
-                                userDB.addUser(user);
+                                if (user.isTransporter())
+                                    userDB.addUser(user);
 
-                                CustomToast.toast(RegisterActivity.this, "Authentication success.");
+                                CustomToast.toast(RegisterActivity.this, "les informations sont bien ajoute.");
 
                                 mAuth.signOut();
                                 mAuth.signInWithEmailAndPassword(Administrateur.email,Administrateur.password);
@@ -176,7 +178,9 @@ public class RegisterActivity extends AppCompatActivity {
        if(!cin.isEmpty() && !fullName.isEmpty() && isEmail(email)
                && !password.isEmpty() && password.equals(confirmPassword))
        {
-           user = new User(fullName, email, password, cin.toUpperCase());
+           Switch swich = findViewById(R.id.check);
+
+           user = new User(fullName, email, password, cin.toUpperCase(), swich.isChecked());
            return true;
        }
        return  false;

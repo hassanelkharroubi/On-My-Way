@@ -1,8 +1,10 @@
 package com.example.onmyway.General;
 
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -20,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.example.onmyway.Models.Admin;
 import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
@@ -40,12 +43,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-
-
 
 
 public class Login extends AppCompatActivity {
@@ -53,17 +53,18 @@ public class Login extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private DatabaseReference ref;
-    private static final String TAG="Login";
+    private static final String TAG = "Login";
 
     private String email;
     private EditText editTextEmail;
     private EditText editTextPassword;
 
 
-    private DialogMsg dialogMsg=new DialogMsg();
-    private boolean gps_enabled=false;
-    private boolean mLocationPermissionGranted=false;
-
+    private DialogMsg dialogMsg = new DialogMsg();
+    private boolean gps_enabled = false;
+    private boolean mLocationPermissionGranted = false;
+    //local db to save the current register admin
+    private Admin admin;
 
 
     @Override
@@ -76,33 +77,35 @@ public class Login extends AppCompatActivity {
 
         getLocationPermission();
 
-        FirebaseUser user= CustomFirebase.getCurrentUser();
+        FirebaseUser user = CustomFirebase.getCurrentUser();
+        admin = new Admin(this);
 
-        ref= CustomFirebase.getDataRefLevel1(getResources().getString(R.string.UserData));
+
+        ref = CustomFirebase.getDataRefLevel1(getResources().getString(R.string.UserData));
 
 
         if (user != null) {
-            if (Administrateur.email.equals(user.getEmail()))
-            {
-                Intent intent=new Intent(Login.this, Home.class);
+
+            if (Administrateur.email.equals(user.getEmail())) {
+                Intent intent = new Intent(Login.this, Home.class);
                 startActivity(intent);
                 finish();
                 return;
             }
-            UserDB userDB=new UserDB(Login.this);
-            ArrayList<User> users=userDB.getAllUsers();
-            Intent intent=new Intent(Login.this, HomeUser.class);
-            intent.putExtra("email",user.getEmail());
-            intent.putExtra("fullName",users.get(0).getfullName());
-            intent.putExtra("cin",users.get(0).getId());
+            UserDB userDB = new UserDB(Login.this);
+            ArrayList<User> users = userDB.getAllUsers();
+            Intent intent = new Intent(Login.this, HomeUser.class);
+            intent.putExtra("email", user.getEmail());
+            intent.putExtra("fullName", users.get(0).getfullName());
+            intent.putExtra("cin", users.get(0).getId());
             startActivity(intent);
             finish();
 
         }
         // Initialize Firebase Auth
         mAuth = CustomFirebase.getUserAuth();
-        editTextEmail=findViewById(R.id.email);
-        editTextPassword=findViewById(R.id.password);
+        editTextEmail = findViewById(R.id.email);
+        editTextPassword = findViewById(R.id.password);
 
 
     }//end of create() method
@@ -111,17 +114,15 @@ public class Login extends AppCompatActivity {
     public void login(View view) {
 
 
-
-        email=editTextEmail.getText().toString();
+        email = editTextEmail.getText().toString();
         String password = editTextPassword.getText().toString();
-        if(!isEmail(email) || password.isEmpty())
-        {
+        if (!isEmail(email) || password.isEmpty()) {
             CustomToast.toast(this, "veuillez valider soit email soit le mot de passe");
             return;
 
         }
 
-        dialogMsg.attendre(this,"Verification","Veuillez attendre ");
+        dialogMsg.attendre(this, "Verification", "Veuillez attendre ");
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -129,75 +130,53 @@ public class Login extends AppCompatActivity {
 
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful())
-                        {
-                            if(email.equals(Administrateur.email))
-                            {
-                                dialogMsg.hideDialog();
-                                Intent intent=new Intent(Login.this,Home.class);
-                                startActivity(intent);
-                                finish();
+                        if (task.isSuccessful()) {
 
-                            }
-                            else
-                            {
-                                Query query= ref.orderByKey().equalTo(mAuth.getUid());
-                                query.addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                        dialogMsg.hideDialog();
-                                        if(dataSnapshot.hasChildren())
-                                        {
+                            ref.child(mAuth.getUid()).addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.exists()) {
+                                        Log.d(TAG, dataSnapshot.toString());
+                                        User user = dataSnapshot.getValue(User.class);
+                                        if (!user.isTransporter()) {
+                                            dialogMsg.hideDialog();
+                                            UserDB userDB = new UserDB(Login.this);
+                                            userDB.addUser(user);
+                                            SharedPreferences sharedPref = Login.this.getPreferences(Context.MODE_PRIVATE);
+                                            SharedPreferences.Editor editor = sharedPref.edit();
+                                            editor.putString(getString(R.string.Admin), user.getfullName());
+                                            editor.commit();
+                                            Intent intent = new Intent(Login.this, Home.class);
+                                            startActivity(intent);
+                                            finish();
 
-                                            for (DataSnapshot userData:dataSnapshot.getChildren())
-                                            {
-                                                User user=userData.getValue(User.class);
-                                                if(user!=null)
-                                                {
-                                                    UserDB userDB=new UserDB(Login.this);
-                                                    userDB.addUser(user);
-                                                    Intent intent=new Intent(Login.this, HomeUser.class);
-                                                    intent.putExtra("email",user.getEmail());
-                                                    intent.putExtra("fullName",user.getfullName());
-                                                    intent.putExtra("cin",user.getId());
-                                                    startActivity(intent);
-                                                    finish();
-
-                                                }
-                                            }
+                                        } else {
+                                            UserDB userDB = new UserDB(Login.this);
+                                            userDB.addUser(user);
+                                            Intent intent = new Intent(Login.this, HomeUser.class);
+                                            intent.putExtra("email", user.getEmail());
+                                            intent.putExtra("fullName", user.getfullName());
+                                            intent.putExtra("cin", user.getId());
+                                            startActivity(intent);
+                                            finish();
                                         }
-
-
-
-                                        else
-                                        {
-
-                                            CustomToast.toast(Login.this, "cet utilisateur n'existe pas");
-                                            mAuth.signOut();
-                                        }
-
+                                    } else {
+                                        CustomToast.toast(Login.this, "cet utilisateur n'existe pas");
+                                        mAuth.signOut();
                                     }
+                                }
 
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                                        CustomToast.toast(Login.this, "Veuillez verfier votre connection ");
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                                    }
-                                });
+                                }
+                            });//end of ref
+                        }
 
-                            }
-
-                        }//end of if statment of succusfull task of sigin
-                        else
-                            {
-                                CustomToast.toast(Login.this, "le mot de passe ou email est incorrect ");
-                                dialogMsg.hideDialog();
+                    }//end of if statment of succusfull task of sign
 
 
-                          }
-
-                    }
-                });
+                });//end of signIn
 
 
     }
@@ -209,20 +188,16 @@ public class Login extends AppCompatActivity {
 
 
     //check google play services
-    private boolean checkGooglePlayServices()
-    {
+    private boolean checkGooglePlayServices() {
         GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
         int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS)
-        {
-            if (apiAvailability.isUserResolvableError(resultCode))
-            {
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
                 apiAvailability.getErrorDialog(this, resultCode, Constants.GOOGLE_PLAY_SERVICES_REQUEST)
                         .show();
-            } else
-                {
+            } else {
 
-                    CustomToast.toast(getApplicationContext(), "votre telephone n'est pas mise a jour ");
+                CustomToast.toast(getApplicationContext(), "votre telephone n'est pas mise a jour ");
                 finish();
             }
             return false;
@@ -234,8 +209,7 @@ public class Login extends AppCompatActivity {
     private boolean isGPSEnabled() {
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (locationManager != null)
-        {
+        if (locationManager != null) {
 
             if (gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
                 return gps_enabled;
@@ -263,10 +237,9 @@ public class Login extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case Constants.GPS_REQUEST_CODE:
-            {
+            case Constants.GPS_REQUEST_CODE: {
 
-                gps_enabled=isGPSEnabled();
+                gps_enabled = isGPSEnabled();
 
                 break;
             }
@@ -280,8 +253,7 @@ public class Login extends AppCompatActivity {
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), Constants.FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-        {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), Constants.FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Constants.FINE_LOCATION}, Constants.REQUEST_FINE_LOCATION);
@@ -289,19 +261,14 @@ public class Login extends AppCompatActivity {
     }//end of getLocationPermission
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         mLocationPermissionGranted = false;
-        switch (requestCode)
-        {
-            case Constants.REQUEST_FINE_LOCATION:
-            {
+        switch (requestCode) {
+            case Constants.REQUEST_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                }
-                else
+                } else
                     getLocationPermission();
             }
         }
@@ -312,11 +279,10 @@ public class Login extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        if(checkGooglePlayServices())
-        {
+        if (checkGooglePlayServices()) {
             getLocationPermission();
-            if(mLocationPermissionGranted)
-                gps_enabled=isGPSEnabled();
+            if (mLocationPermissionGranted)
+                gps_enabled = isGPSEnabled();
         }
 
 
