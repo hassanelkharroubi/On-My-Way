@@ -11,7 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.onmyway.Models.Administrateur;
+import com.example.onmyway.Models.Admin_transporter_db;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
@@ -132,7 +132,11 @@ public class Chercher extends AppCompatActivity {
             if (user == null)
             {
 
-                CustomToast.toast(this, "vous n'avez aucun cheuffaur");
+                CustomToast.toast(this, "vous n'avez pas cet chauffeur");
+                fullnameV.setVisibility(View.GONE);
+                cinV.setVisibility(View.GONE);
+                emailV.setVisibility(View.GONE);
+                operationV.setVisibility(View.GONE);
 
                 return;
             }
@@ -203,7 +207,8 @@ public class Chercher extends AppCompatActivity {
 
                                 refUserData.child(idUserInFireBase).removeValue();
                                 dialogMsg.hideDialog();
-                                CustomFirebase.getUserAuth().signInWithEmailAndPassword(Administrateur.email, Administrateur.password)
+                                CustomFirebase.getUserAuth().signInWithEmailAndPassword(new Admin_transporter_db(Chercher.this).getAdmin().getEmail(),
+                                        new Admin_transporter_db(Chercher.this).getAdmin().getPassword())
 
                                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                                             @Override

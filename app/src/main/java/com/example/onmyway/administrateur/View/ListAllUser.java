@@ -1,8 +1,7 @@
 package com.example.onmyway.administrateur.View;
-
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -29,7 +28,7 @@ import java.util.ArrayList;
 
 public class ListAllUser extends AppCompatActivity {
 
-    private ProgressDialog progressDialog;
+
 
     private RecyclerView recyclerView;
 
@@ -40,13 +39,14 @@ public class ListAllUser extends AppCompatActivity {
     private UserDB userDB;
     private ArrayList<User> usersFireBase,users;
     private  User user;
-    private DialogMsg dialogMsg = new DialogMsg();
+    private DialogMsg dialogMsg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_list_all_user);
+        dialogMsg = new DialogMsg();
 
         //get toolbar_layout
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -67,7 +67,7 @@ public class ListAllUser extends AppCompatActivity {
 
         ref=FirebaseDatabase.getInstance().getReference().child(getResources().getString(R.string.UserData));
         userDB=new UserDB(this);
-        readFromDataBase();
+
     }
 
     public void readFromDataBase()
@@ -75,6 +75,7 @@ public class ListAllUser extends AppCompatActivity {
         users=userDB.getAllUsers();
         if(users.size()==0)
         {
+            Log.d(TAG, "locaL db is null");
             //show progress dialog
             dialogMsg.attendre(this, "Recherche", "Veuillez attendre .....");
 
@@ -85,11 +86,8 @@ public class ListAllUser extends AppCompatActivity {
 
                     if (!dataSnapshot.exists())
                     {
-
-
                         CustomToast.toast(ListAllUser.this, "pas de cheffaures! veuillez ajouter neveau");
                        startActivity(new Intent(ListAllUser.this, Home.class));
-
                         return;
                     }
 
@@ -102,6 +100,7 @@ public class ListAllUser extends AppCompatActivity {
                         if (user.isTransporter())
                             usersFireBase.add(user);
                     }
+                    Log.d(TAG, "la taillle de usersFirebase=" + usersFireBase.size());
                     userDB.addUsers(usersFireBase);
                     setAdapter(usersFireBase);
 
@@ -115,7 +114,11 @@ public class ListAllUser extends AppCompatActivity {
 
             });
         }//if users array is not 0
-        else setAdapter(users);
+
+        else {
+            Log.d(TAG, "locaL db is not null");
+            setAdapter(users);
+        }
 
 
 
@@ -168,5 +171,11 @@ public class ListAllUser extends AppCompatActivity {
         users=new ArrayList<>();
         readFromDataBase();
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        finish();
     }
 }

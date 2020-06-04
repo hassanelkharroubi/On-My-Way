@@ -24,9 +24,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.onmyway.General.Login;
+import com.example.onmyway.Models.Admin_transporter_db;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.DestinationDB;
-import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.CheckLogin;
 import com.example.onmyway.Utils.Constants;
@@ -59,7 +59,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_user);
 
-        Log.d(TAG, "hello from HomeUser");
+
 
         DestinationDB destinationDB = new DestinationDB(this);
 
@@ -97,7 +97,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         }
 
         TextView fullnameV = findViewById(R.id.fullname);
-        fullnameV.setText( "Bienvenue Mr. "+new UserDB(this).getAllUsers().get(0).getfullName());
+        fullnameV.setText("Bienvenue Mr. " + new Admin_transporter_db(this).getAdmin().getfullName());
 
         addressV=findViewById(R.id.address);
         addressV.setVisibility(View.GONE);

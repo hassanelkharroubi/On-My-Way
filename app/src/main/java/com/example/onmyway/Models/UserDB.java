@@ -34,7 +34,12 @@ public class UserDB extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        String request="CREATE TABLE if not exists "+TABLE+" ("+ID+" varchar(20) primary key,"+NAME+" varchar(30),"+EMAIL+" varchar(30),"+PASSWORD+" varchar(30))";
+        String request = "CREATE TABLE if not exists " +
+                TABLE + " (" +
+                ID + " varchar(20) primary key," +
+                NAME + " varchar(30)," +
+                EMAIL + " varchar(30)," +
+                PASSWORD + " varchar(30))";
         db.execSQL(request);
 
 
@@ -51,7 +56,7 @@ public class UserDB extends SQLiteOpenHelper {
 
     }
 
-    public void addUser(User user)
+    public long addUser(User user)
     {
         SQLiteDatabase db=getWritableDatabase();
         ContentValues data=new ContentValues();
@@ -59,7 +64,9 @@ public class UserDB extends SQLiteOpenHelper {
         data.put(NAME,user.getfullName());
         data.put(EMAIL,user.getEmail());
         data.put(PASSWORD,user.getPassword());
-        db.insert(TABLE,null,data);
+        long inserted = db.insert(TABLE, null, data);
+        db.close();
+        return inserted;
     }
 
 
@@ -72,6 +79,16 @@ public class UserDB extends SQLiteOpenHelper {
        return deleted;
 
     }
+
+    public void deleteUsers() {
+
+        SQLiteDatabase database = this.getWritableDatabase();
+
+        database.delete(TABLE, null, null);
+
+
+        database.close();
+    }//end of deleteAdmin();
 
     public User findUserByCin(final String cin)
 

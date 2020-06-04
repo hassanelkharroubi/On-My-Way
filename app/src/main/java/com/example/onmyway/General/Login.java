@@ -1,10 +1,8 @@
 package com.example.onmyway.General;
 
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -23,10 +21,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.onmyway.Models.Admin_transporter_db;
-import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
-import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.User.View.HomeUser;
 import com.example.onmyway.Utils.Constants;
@@ -44,8 +40,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
-
-import java.util.ArrayList;
 
 
 public class Login extends AppCompatActivity {
@@ -81,25 +75,23 @@ public class Login extends AppCompatActivity {
         admin_transporter_db = new Admin_transporter_db(this);
 
 
+
         ref = CustomFirebase.getDataRefLevel1(getResources().getString(R.string.UserData));
 
 
         if (user != null) {
 
-            if (Administrateur.email.equals(user.getEmail())) {
+            if (!admin_transporter_db.getAdmin().isTransporter()) {
                 Intent intent = new Intent(Login.this, Home.class);
                 startActivity(intent);
                 finish();
                 return;
             }
-            UserDB userDB = new UserDB(Login.this);
-            ArrayList<User> users = userDB.getAllUsers();
+
             Intent intent = new Intent(Login.this, HomeUser.class);
-            intent.putExtra("email", user.getEmail());
-            intent.putExtra("fullName", users.get(0).getfullName());
-            intent.putExtra("cin", users.get(0).getId());
             startActivity(intent);
             finish();
+            return;
 
         }
         // Initialize Firebase Auth
@@ -130,37 +122,36 @@ public class Login extends AppCompatActivity {
 
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+
                         if (task.isSuccessful()) {
+
 
                             ref.child(mAuth.getUid()).addValueEventListener(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (dataSnapshot.exists()) {
+                                        dialogMsg.hideDialog();
                                         Log.d(TAG, dataSnapshot.toString());
+
                                         User user = dataSnapshot.getValue(User.class);
+
+                                        admin_transporter_db.deleteAdmin();
+                                        admin_transporter_db.addAdmin(user);
+
                                         if (!user.isTransporter()) {
-                                            dialogMsg.hideDialog();
-                                            UserDB userDB = new UserDB(Login.this);
-                                            userDB.addUser(user);
-                                            SharedPreferences sharedPref = Login.this.getPreferences(Context.MODE_PRIVATE);
-                                            SharedPreferences.Editor editor = sharedPref.edit();
-                                            editor.putString(getString(R.string.Admin), user.getfullName());
-                                            editor.commit();
+
                                             Intent intent = new Intent(Login.this, Home.class);
                                             startActivity(intent);
                                             finish();
 
                                         } else {
-                                            UserDB userDB = new UserDB(Login.this);
-                                            userDB.addUser(user);
                                             Intent intent = new Intent(Login.this, HomeUser.class);
-                                            intent.putExtra("email", user.getEmail());
-                                            intent.putExtra("fullName", user.getfullName());
-                                            intent.putExtra("cin", user.getId());
+
                                             startActivity(intent);
                                             finish();
                                         }
                                     } else {
+                                        dialogMsg.hideDialog();
                                         CustomToast.toast(Login.this, "cet utilisateur n'existe pas");
                                         mAuth.signOut();
                                     }
@@ -169,11 +160,18 @@ public class Login extends AppCompatActivity {
                                 @Override
                                 public void onCancelled(@NonNull DatabaseError databaseError) {
 
+                                    dialogMsg.hideDialog();
+
                                 }
                             });//end of ref
+                        }//end of if statment of succusfull task of sign
+                        else {
+                            CustomToast.toast(Login.this, "vous ne pouvez pas de se connecter !\n veuillez verfier votre informations " +
+                                    "ou bien votre connection internet");
+                            dialogMsg.hideDialog();
                         }
 
-                    }//end of if statment of succusfull task of sign
+                    }
 
 
                 });//end of signIn

@@ -26,7 +26,7 @@ public class Admin_transporter_db extends SQLiteOpenHelper {
                 Utils.TRANSPORTER + " INT)";
 
         db.execSQL(CREATE_ADMIN_TABLE);
-        db.close();
+
 
     }
 

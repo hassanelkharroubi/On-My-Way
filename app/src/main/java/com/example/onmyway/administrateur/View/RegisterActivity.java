@@ -17,7 +17,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.example.onmyway.Models.Administrateur;
+import com.example.onmyway.Models.Admin_transporter_db;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
@@ -113,16 +113,34 @@ public class RegisterActivity extends AppCompatActivity {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful())
                             {
-                                myRef.child( mAuth.getUid()).setValue(user);
+                                if (user.isTransporter()) {
+                                    //check if the cin is already registered
+                                    if (userDB.addUser(user) == -1) {
+                                        CustomToast.toast(RegisterActivity.this, "cet utilisateur deja existe ");
+                                        CustomFirebase.getCurrentUser().delete();
+                                    } else {
+                                        //we have to add listener for that event
+                                        myRef.child(mAuth.getUid()).setValue(user);
+                                        //SIGNOUT FROM THE CURRENT registered user
+                                        mAuth.signOut();
+                                        //we neeed to verfiy also if the previous Admin in signed in successful
+                                        mAuth.signInWithEmailAndPassword(new Admin_transporter_db(RegisterActivity.this).getAdmin().getEmail()
+                                                , new Admin_transporter_db(RegisterActivity.this).getAdmin().getPassword());
+                                        CustomToast.toast(RegisterActivity.this, "les informations sont bien ajouté.");
 
-                                //i the same time we have to add this user to local data base
-                                if (user.isTransporter())
-                                    userDB.addUser(user);
+                                    }
+                                } else {
+                                    //we have to add listener for that event
+                                    myRef.child(mAuth.getUid()).setValue(user);
+                                    //SIGNOUT FROM THE CURRENT registered user
+                                    mAuth.signOut();
+                                    //we neeed to verfiy also if the previous Admin in signed in successful
+                                    mAuth.signInWithEmailAndPassword(new Admin_transporter_db(RegisterActivity.this).getAdmin().getEmail()
+                                            , new Admin_transporter_db(RegisterActivity.this).getAdmin().getPassword());
+                                    CustomToast.toast(RegisterActivity.this, "les informations sont bien ajouté.");
 
-                                CustomToast.toast(RegisterActivity.this, "les informations sont bien ajoute.");
+                                }
 
-                                mAuth.signOut();
-                                mAuth.signInWithEmailAndPassword(Administrateur.email,Administrateur.password);
 
                                 startActivity(new Intent(RegisterActivity.this,RegisterActivity.class));
                             }
@@ -152,6 +170,9 @@ public class RegisterActivity extends AppCompatActivity {
 
         if(item.getItemId()==android.R.id.home)
             startActivity(new Intent(this, Home.class));
+        if (item.getItemId() == R.id.enligne)
+            startActivity(new Intent(this, ListAllUser.class));
+
 
         return super.onOptionsItemSelected(item);
     }
