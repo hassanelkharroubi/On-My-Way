@@ -79,8 +79,10 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onLocationResult(LocationResult locationResult)
             {
+                isGPSEnabled();
 
                 super.onLocationResult(locationResult);
+
 
                 for (Location location : locationResult.getLocations())
                 {

@@ -4,12 +4,12 @@ package com.example.onmyway.Models;
 public class GeoPoint {
 
     private double speed;
-    private double time;
+    private long time;
     private double latitude;
     private double longitude;
     public GeoPoint() { }
 
-    public GeoPoint(double speed, double time, double latitude, double longitude) {
+    public GeoPoint(double speed, long time, double latitude, double longitude) {
         this.speed = speed;
         this.time = time;
         this.latitude = latitude;
@@ -24,11 +24,11 @@ public class GeoPoint {
         this.speed = speed;
     }
 
-    public double getTime() {
+    public long getTime() {
         return time;
     }
 
-    public void setTime(double time) {
+    public void setTime(long time) {
         this.time = time;
     }
 

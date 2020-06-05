@@ -4,11 +4,15 @@ package com.example.onmyway.administrateur.View;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -30,6 +34,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Objects;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -39,6 +45,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
 
     private MarkerOptions markerOptions;
+    Marker marker;
     private SupportMapFragment mapFragment;
 
 
@@ -65,6 +72,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         dialogMsg=new DialogMsg();
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        markerOptions = new MarkerOptions();
         initMap();
 
 
@@ -151,22 +159,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     //move camera to right place
     private void moveCamera(LatLng latLng, float zoom) {
         Log.d(TAG, "inside moveCamera");
-        markerOptions=new MarkerOptions();
+        if (marker != null)
+            marker.remove();
+
         markerOptions.position(latLng);
-        Marker marker= mMap.addMarker(markerOptions);
+
+        marker = mMap.addMarker(markerOptions);
+
+
+        /*
         marker.setSnippet("speed: " + geoPoint.getSpeed());
+
+
+
+
         if (fullName != null)
-            marker.setTitle(fullName);
-
-
+            marker.setTitle(fullName);*/
         // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                showInfo();
+                return false;
+            }
+        });
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
+
         Log.d(TAG, "OnResume");
         if(dialogMsg!=null)
          dialogMsg.hideDialog();
@@ -205,6 +229,29 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         return super.onOptionsItemSelected(item);
     }
+
+    private void showInfo() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        Timestamp timestamp = new Timestamp(geoPoint.getTime());
+        Date date = timestamp;
+
+
+        LayoutInflater layoutInflater = getLayoutInflater();
+        View view = layoutInflater.inflate(R.layout.dialog_layout, null);
+
+        TextView transporter = view.findViewById(R.id.transporterName);
+        TextView speed = view.findViewById(R.id.speed);
+        TextView update = view.findViewById(R.id.date);
+
+        transporter.setText(fullName);
+        speed.setText("la vitesse " + geoPoint.getSpeed());
+        update.setText("dernier mise a jour " + date.toString());
+
+        builder.setView(view).create().show();
+
+
+    }//end of showInfo()
 
 
 
