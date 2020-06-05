@@ -292,6 +292,10 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
         stopLocationUpdates();
         DestinationDB destinationDB = new DestinationDB(this);
         destinationDB.deleteDestination();
+
+        CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination))
+                .child(CustomFirebase.getCurrentUser().getUid()).removeValue();
+
         startActivity(new Intent(this, HomeUser.class));
         finish();
     }//end of stop()//work is done

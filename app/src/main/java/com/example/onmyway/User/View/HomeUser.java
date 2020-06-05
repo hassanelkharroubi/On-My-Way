@@ -62,8 +62,6 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
 
         DestinationDB destinationDB = new DestinationDB(this);
-
-
         //check if we word started or not
         LatLng stored = destinationDB.getDestination();
         //when choose destination oncreate called in this classe so we have to verfiy is there is
@@ -97,7 +95,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         }
 
         TextView fullnameV = findViewById(R.id.fullname);
-        fullnameV.setText("Bienvenue Mr. " + new Admin_transporter_db(this).getAdmin().getfullName());
+        fullnameV.setText("Bienvenue Mr. " + new Admin_transporter_db(this).getAdmin().getfullName().toUpperCase());
 
         addressV=findViewById(R.id.address);
         addressV.setVisibility(View.GONE);
@@ -144,6 +142,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
         startActivity(new Intent(this, UserPosition.class));
         finish();
+
 
     }
 
@@ -309,6 +308,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
             CustomFirebase.getUserAuth().signOut();
             startActivity(new Intent(this, Login.class));
+            new Admin_transporter_db(this).deleteAdmin();
             finish();
 
         }

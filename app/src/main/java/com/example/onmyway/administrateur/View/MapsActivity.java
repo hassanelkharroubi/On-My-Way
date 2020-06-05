@@ -203,9 +203,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (item.getItemId() == R.id.chercher)
             startActivity(new Intent(this, Chercher.class));
 
-
-
-
         return super.onOptionsItemSelected(item);
     }
 
