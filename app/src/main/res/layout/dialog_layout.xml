@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/edit"
     android:orientation="vertical">
 
     <ImageView
@@ -45,6 +46,6 @@
         android:paddingLeft="40dp"
         android:text="mise a jour"
         android:textAllCaps="true"
-        android:textSize="24sp"
+        android:textSize="18sp"
         android:textStyle="bold" />
 </LinearLayout>

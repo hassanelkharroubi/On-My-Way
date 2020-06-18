@@ -40,6 +40,7 @@ public class Splash extends AppCompatActivity {
             Log.d(TAG, "inside on create method in stored location ");
             startActivity(new Intent(this, UserPosition.class));
             finish();
+            return;
         }
 
 

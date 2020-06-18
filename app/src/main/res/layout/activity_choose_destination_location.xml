@@ -44,8 +44,8 @@
             android:hint="Chercher la destination ..."
             android:imeOptions="actionSearch"
             android:textColor="#000"
+            android:inputType="text"
             android:textSize="15sp" />
-
 
     </RelativeLayout>
 </RelativeLayout>

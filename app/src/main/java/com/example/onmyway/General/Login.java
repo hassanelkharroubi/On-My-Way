@@ -49,7 +49,6 @@ public class Login extends AppCompatActivity {
     private DatabaseReference ref;
     private static final String TAG = "Login";
 
-    private String email;
     private EditText editTextEmail;
     private EditText editTextPassword;
 
@@ -103,10 +102,15 @@ public class Login extends AppCompatActivity {
     }//end of create() method
 
 
+    //fonction de verification email
+    private static boolean isEmail(CharSequence target) {
+        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
+    }
+
     public void login(View view) {
 
 
-        email = editTextEmail.getText().toString();
+        String email = editTextEmail.getText().toString();
         String password = editTextPassword.getText().toString();
         if (!isEmail(email) || password.isEmpty()) {
             CustomToast.toast(this, "veuillez valider soit email soit le mot de passe");
@@ -173,15 +177,9 @@ public class Login extends AppCompatActivity {
 
                     }
 
-
                 });//end of signIn
 
 
-    }
-
-    //fonction de verification email
-    public static boolean isEmail(CharSequence target) {
-        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
     }
 
 

@@ -1,7 +1,6 @@
 package com.example.onmyway.administrateur.View;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Patterns;
@@ -13,7 +12,6 @@ import android.widget.EditText;
 import android.widget.Switch;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -23,6 +21,7 @@ import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.CustomToast;
+import com.example.onmyway.Utils.DialogMsg;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -32,8 +31,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 
 public class RegisterActivity extends AppCompatActivity {
-
-    private Toolbar toolbar;
 
 
     private static final String TAG="register";
@@ -59,12 +56,13 @@ public class RegisterActivity extends AppCompatActivity {
     private UserDB userDB;
 
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_register);
+
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference(getResources().getString(R.string.UserData));
@@ -73,7 +71,7 @@ public class RegisterActivity extends AppCompatActivity {
 
 
         //get toolbar_layout
-        toolbar=findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -102,6 +100,9 @@ public class RegisterActivity extends AppCompatActivity {
 }
 
     public void register(View view) {
+
+        DialogMsg dialogMsg = new DialogMsg();
+        dialogMsg.attendre(this, "Attendre", "Veuillez patient .....");
 
 
         if(allInputValid())
@@ -141,11 +142,12 @@ public class RegisterActivity extends AppCompatActivity {
 
                                 }
 
-
+                                dialogMsg.hideDialog();
                                 startActivity(new Intent(RegisterActivity.this,RegisterActivity.class));
                             }
                             else
                             {
+                                dialogMsg.hideDialog();
 
                                 CustomToast.toast(RegisterActivity.this, "on ne peut pas ajouter neveau utilidateur !Verfier votre connection.");
 
@@ -157,7 +159,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
         else
         {
-
+            dialogMsg.hideDialog();
             CustomToast.toast(this, "Veuilez verifier les donnees que vouz avez saisi ....!");
         }
 

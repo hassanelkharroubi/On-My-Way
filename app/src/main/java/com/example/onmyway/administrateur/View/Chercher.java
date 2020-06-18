@@ -1,6 +1,5 @@
 package com.example.onmyway.administrateur.View;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -44,14 +43,12 @@ public class Chercher extends AppCompatActivity {
     private String idUserInFireBase;
 
     private LinearLayout operationV;
-    private DatabaseReference ref;
     private DatabaseReference refUserData;
-    private DatabaseReference locationRef;
+
     ArrayList<User> users;
     private User user;
     UserDB userDB;
 //on a besoin de ca  lorsqu'on va faire des requete au firebase
-    private ProgressDialog progressDialog;
     private DialogMsg dialogMsg;
 
     @Override
@@ -64,7 +61,7 @@ public class Chercher extends AppCompatActivity {
 
 //on va utiliser cet objet pour les requetes comme sql
         refUserData= FirebaseDatabase.getInstance().getReference().child(getString(R.string.UserData));
-        locationRef= FirebaseDatabase.getInstance().getReference().child(getResources().getString(R.string.OnlineUserLocation));
+
 
         chercherV=findViewById(R.id.search);
         fullnameV=findViewById(R.id.fullname);
@@ -81,7 +78,7 @@ public class Chercher extends AppCompatActivity {
         if(users.size()==0)
         {
 
-            ref= FirebaseDatabase.getInstance().getReference().child(getResources().getString(R.string.UserData));
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child(getResources().getString(R.string.UserData));
 
             ref.addValueEventListener(new ValueEventListener(){
                 @Override
@@ -101,7 +98,7 @@ public class Chercher extends AppCompatActivity {
                         else
                         {
                             Toast.makeText(Chercher.this, "user data n'existe pas", Toast.LENGTH_SHORT).show();
-                            progressDialog.dismiss();
+
                         }
 
 
@@ -159,7 +156,7 @@ public class Chercher extends AppCompatActivity {
 
     public void supprimerUser(View view) {
         dialogMsg.attendre(this,"Supprimer","Chercher user");
-        userDB.deleteUser(keyWord.toLowerCase());
+        userDB.deleteUser(keyWord.toUpperCase());
         findUserInFireBaseByCin(true);
 
         fullnameV.setVisibility(View.GONE);
@@ -219,7 +216,6 @@ public class Chercher extends AppCompatActivity {
                                             }
                                         });
 
-
                                 return;
                             }
                             dialogMsg.hideDialog();
@@ -243,7 +239,6 @@ public class Chercher extends AppCompatActivity {
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(Chercher.this, "Veuillez verfier votre connection", Toast.LENGTH_SHORT).show();
-                    progressDialog.dismiss();
 
                 }
             });

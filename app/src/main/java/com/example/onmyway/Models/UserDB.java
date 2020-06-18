@@ -72,8 +72,12 @@ public class UserDB extends SQLiteOpenHelper {
 
     public int deleteUser(String id)
     {
+        Log.d(TAG, "en train de supprimer user id " + id);
         SQLiteDatabase db=getWritableDatabase();
-        int deleted=db.delete(TABLE,ID+" =?",new String[]{id});
+
+
+        int deleted = db.delete(TABLE, "upper(" + ID + ")" + " =?", new String[]{id});
+        Log.d(TAG, "le nb de ligfne supprime est " + deleted);
         db.close();
 
        return deleted;

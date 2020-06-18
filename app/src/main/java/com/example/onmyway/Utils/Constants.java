@@ -23,4 +23,5 @@ public final class Constants {
 
     public static final float DEFAULT_ZOOM = 15f;
     public  static  final LatLng fes=new LatLng(34.0240853,-5.0717807);
+    public final static float speed = 55;
 }

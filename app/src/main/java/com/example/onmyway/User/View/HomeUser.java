@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 import com.example.onmyway.General.Login;
 import com.example.onmyway.Models.Admin_transporter_db;
 import com.example.onmyway.Models.CustomFirebase;
+import com.example.onmyway.Models.Destination;
 import com.example.onmyway.Models.DestinationDB;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.CheckLogin;
@@ -211,22 +212,24 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         if (CheckLogin.toLogin(this)) finish();
 
 
+        //we have to read inetet comming from ChooseDestinationLocation
         Intent intent=getIntent();
+        Destination destination = null;
         boolean hasIntent = false;
-        if(intent.hasExtra("address") || intent.hasExtra("latlang"))
+        if (intent.hasExtra("latlng"))
         {
-
+            destination = new Destination(intent.getParcelableExtra("latlng"), intent.getStringExtra("address"));
             mapFragment.getMapAsync(this);
             startB.setVisibility(View.VISIBLE);
             addressV.setVisibility(View.VISIBLE);
             hasIntent = true;
 
-            LatLng latLng=intent.getParcelableExtra("latlng");
+
             //if we wanna back the prev activity to show direction
-            if(!intent.getStringExtra("address").isEmpty())
-                addressV.setText(intent.getStringExtra("address"));
+            if (destination.getDestination() != null)
+                addressV.setText(destination.getDestination());
             else
-                addressV.setText("latitude "+latLng.latitude+",longitude "+latLng.longitude);
+                addressV.setText("Veuillez choisir un atre destination ou bien commencer le travail ");
 
         }
         //we can go back from userPosition by press onback key

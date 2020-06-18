@@ -51,7 +51,6 @@ public class ListAllUser extends AppCompatActivity {
         //get toolbar_layout
         Toolbar toolbar = findViewById(R.id.toolbar);
 
-
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);

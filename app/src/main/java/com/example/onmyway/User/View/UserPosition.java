@@ -7,6 +7,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ import com.example.onmyway.Models.GeoPoint;
 import com.example.onmyway.R;
 import com.example.onmyway.Service.MyBackgroundLocationService;
 import com.example.onmyway.Utils.Constants;
+import com.example.onmyway.Utils.CustomToast;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -35,6 +37,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseReference;
 
@@ -48,18 +51,19 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     private LatLng origin;
     private SupportMapFragment mapFragment;
     private MarkerOptions markerOptions;
+    private Marker marker;
 //loaction permission
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Boolean mLocationPermissionGranted= false;
     private boolean gps_enabled=false;
-    private LocationManager locationManager;
     private DatabaseReference ref;
     //for stop backgound services
     private boolean stop=false;
-
+    //we will use this var to update de time to the destination every 10min
     private int counterForUpdateTimeDestination = 0;
+
 
 
     @Override
@@ -79,7 +83,15 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onLocationResult(LocationResult locationResult)
             {
-                isGPSEnabled();
+
+
+                if (isGPSEnabled())
+
+                    Log.d(TAG, "yes sis enabled ");
+
+                else
+                    Log.d(TAG, "no is not enabled ");
+
 
                 super.onLocationResult(locationResult);
 
@@ -89,21 +101,19 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
                     if (location != null )
 
                     {
-                        counterForUpdateTimeDestination++;
+                        counterForUpdateTimeDestination += 2;
 
                         GeoPoint geoPoint=new GeoPoint();
                         geoPoint.setLongitude(location.getLongitude());
                         geoPoint.setLatitude(location.getLatitude());
                         geoPoint.setTime(location.getTime());
-                        geoPoint.setSpeed(location.getSpeed());
+                        geoPoint.setSpeed(Math.floor(location.getSpeed()));
 
                         origin = new LatLng(location.getLatitude(), location.getLongitude());
                         if (counterForUpdateTimeDestination == 600) {
                             String url = ShowDirection.getUrl(origin, new DestinationDB(UserPosition.this).getDestination(), "driving", getString(R.string.google_map_api));
                             new FetchURL(UserPosition.this).execute(url, "driving");
                             counterForUpdateTimeDestination = 0;
-
-
                         }
                         moveCamera(origin, Constants.DEFAULT_ZOOM);
                         ref.child(CustomFirebase.getCurrentUser().getUid()).setValue(geoPoint);
@@ -143,11 +153,12 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
 
     private void moveCamera(LatLng latLng, float zoom) {
 
-        if(markerOptions!=null)
-            markerOptions= new MarkerOptions();
+        if (marker != null)
+            marker.remove();
         markerOptions.position(latLng);
-        mMap.addMarker(markerOptions);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom - 4));
+        marker = mMap.addMarker(markerOptions);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        // mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom - 2));
     }//end moveCamera()
 
     @Override
@@ -163,7 +174,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
 
     private boolean isGPSEnabled() {
 
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (locationManager != null)
         {
 
@@ -209,9 +220,11 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
             // destination=destinationDB.getDestination();
             Intent intent=new Intent(this,ChooseDestinationLocation.class);
             intent.putExtra(TAG,TAG);
+            Log.d(TAG, "origin= " + origin);
+            Log.d(TAG, "destination= " + new DestinationDB(this).getDestination());
             intent.putExtra("origin",origin);
-
             startActivity(intent);
+            //finish();
 
        }//end of showDirection
 
@@ -308,6 +321,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     protected void onResume() {
         super.onResume();
 
+        Log.d(TAG, "i'm in resume method ");
         stopService();
         if(gps_enabled=isGPSEnabled())
         {
@@ -327,10 +341,40 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onTaskDone(String distance, String duration, Object... values) {
+        if (distance == null)
+            return;
+        if (distance == null) {
+            CustomToast.toast(this, "la direction n'existe pas dont la destination que vous avez choisi !");
+            startActivity(new Intent(this, UserPosition.class));
+            finish();
+            return;
+        }
+
+        Log.d(TAG, "number of km before regex = " + distance);
+        String numberOfKM = distance.replaceAll("km", "");
+
+        //will assume depending on https://www.energy.gov/eere/vehicles/fact-671-april-18-2011-average-truck-speeds that average speed is 55km/h
+        //t=d/v
+        Log.d(TAG, "number of km= " + numberOfKM);
+        double time = Double.parseDouble(numberOfKM) / Constants.speed;
+        Log.d(TAG, "time to destination = " + time);
+        if (time < 1) {
+            time = Math.floor(time * 60);
+            duration = time + " mins";
+        } else {
+            double hour = Math.floor(time);
+            double min = Math.floor((time - hour) * 60);
+            duration = hour + " hours " + min + " mins";
+
+        }
+
+
+        Log.d(TAG, "extract number from =" + duration);
         String userkey = CustomFirebase.getCurrentUser().getUid();
 
         CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination)).child(userkey).child("duration").setValue(duration);
         CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination)).child(userkey).child("distance").setValue(distance);
+        CustomToast.toast(this, "Il reste " + duration);
 
 
     }
