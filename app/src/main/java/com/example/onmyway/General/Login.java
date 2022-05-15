@@ -45,12 +45,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
-
-
-
 public class Login extends AppCompatActivity {
-
-
     private FirebaseAuth mAuth;
     private DatabaseReference ref;
     private static final String TAG="Login";
@@ -64,8 +59,6 @@ public class Login extends AppCompatActivity {
     private boolean gps_enabled=false;
     private boolean mLocationPermissionGranted=false;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +67,7 @@ public class Login extends AppCompatActivity {
             // finish();
             Log.d(TAG, "google play services are not correct");
 
-        getLocationPermission();
+        //getLocationPermission();
 
         FirebaseUser user= CustomFirebase.getCurrentUser();
 
@@ -131,13 +124,13 @@ public class Login extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful())
                         {
+                            Log.d(TAG,"user signed in");
                             if(email.equals(Administrateur.email))
                             {
                                 dialogMsg.hideDialog();
                                 Intent intent=new Intent(Login.this,Home.class);
                                 startActivity(intent);
                                 finish();
-
                             }
                             else
                             {
@@ -283,6 +276,7 @@ public class Login extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(), Constants.FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
         {
             mLocationPermissionGranted = true;
+            Log.d(TAG,"all permission are granetd");
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Constants.FINE_LOCATION}, Constants.REQUEST_FINE_LOCATION);
         }

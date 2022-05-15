@@ -29,8 +29,6 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-
-
 public class Chercher extends AppCompatActivity {
 
     private static final String TAG = "Chercher";

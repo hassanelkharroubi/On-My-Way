@@ -1,5 +1,6 @@
 package com.example.onmyway.User.View;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -45,7 +46,7 @@ import com.google.android.gms.tasks.Task;
 public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
     private static final String TAG = "HomeUser";
     SupportMapFragment mapFragment;
-    private Boolean mLocationPermissionGranted= false;
+    private Boolean mLocationPermissionGranted = false;
     boolean gps_enabled = false;
     private Button startB;
     LatLng myLocation;
@@ -81,35 +82,33 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         getSupportActionBar().setTitle("Accueil");
 
 
-
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         initMap();
         getLocationPermission();
-        if(mLocationPermissionGranted)
-        {
-            gps_enabled= isGPSEnabled();
-            if(gps_enabled)
-            {
+        if (mLocationPermissionGranted) {
+            Log.d(TAG,"mLocationPermissionGranted is true");
+            gps_enabled = isGPSEnabled();
+            if (gps_enabled) {
+                Log.d(TAG,"gps is enable");
                 getLastLocation();
             }
 
         }
 
         TextView fullnameV = findViewById(R.id.fullname);
-        fullnameV.setText( "Bienvenue Mr. "+new UserDB(this).getAllUsers().get(0).getfullName());
+        fullnameV.setText("Bienvenue Mr. " + new UserDB(this).getAllUsers().get(0).getfullName());
 
-        addressV=findViewById(R.id.address);
+        addressV = findViewById(R.id.address);
         addressV.setVisibility(View.GONE);
-        startB=findViewById(R.id.start);
+        startB = findViewById(R.id.start);
         startB.setVisibility(View.GONE);
-
 
 
     }//end of create();
 
-    private void initMap()
-    {
+    private void initMap() {
         mapFragment.getMapAsync(this);
     }
 
@@ -138,15 +137,12 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         }
     }
 //end of onMapReady()
-
-
     public void start(View view) {
 
         startActivity(new Intent(this, UserPosition.class));
         finish();
 
     }
-
 
     //section for location services
     public boolean isGPSEnabled() {
@@ -183,12 +179,27 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
     }//end of getLocationPermission
 
     public void getLastLocation() {
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            Log.d(TAG,"permission is not granted");
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         mFusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
             @Override
             public void onComplete(@NonNull Task<Location> task) {
                 Location location = task.getResult();
 
+
                 if (location != null) {
+                    Log.d(TAG,"inside mFusedLocationProviderClient "+location.getLatitude());
                     myLocation = new LatLng(location.getLongitude(), location.getLatitude());
 
 
@@ -208,6 +219,8 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
     @Override
     protected void onResume() {
         super.onResume();
+
+        Log.d(TAG,"inside onResume");
 
         if (CheckLogin.toLogin(this)) finish();
 
@@ -256,7 +269,6 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         switch (requestCode) {
             case Constants.GPS_REQUEST_CODE:
             {
@@ -273,19 +285,15 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         mLocationPermissionGranted = false;
-        switch (requestCode)
-        {
-            case Constants.REQUEST_FINE_LOCATION:
-            {
+        switch (requestCode) {
+            case Constants.REQUEST_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                }
-                else
+                } else
                     getLocationPermission();
             }
         }
