@@ -50,6 +50,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
     boolean gps_enabled = false;
     private Button startB;
     LatLng myLocation;
+
     //loaction permission;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     LocationManager locationManager;
@@ -63,8 +64,6 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         Log.d(TAG, "hello from HomeUser");
 
         DestinationDB destinationDB = new DestinationDB(this);
-
-
         //check if we word started or not
         LatLng stored = destinationDB.getDestination();
         //when choose destination oncreate called in this classe so we have to verfiy is there is
@@ -84,7 +83,10 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
+        Log.d(TAG,"before calling support fragment manager");
+
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        Log.d(TAG,"after calling support fragment manager");
         initMap();
         getLocationPermission();
         if (mLocationPermissionGranted) {
@@ -202,7 +204,6 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
                     Log.d(TAG,"inside mFusedLocationProviderClient "+location.getLatitude());
                     myLocation = new LatLng(location.getLongitude(), location.getLatitude());
 
-
                 }
             }
 
@@ -224,11 +225,15 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
         if (CheckLogin.toLogin(this)) finish();
 
+        Log.d(TAG,"after checking is logging");
+
+
 
         Intent intent=getIntent();
         boolean hasIntent = false;
         if(intent.hasExtra("address") || intent.hasExtra("latlang"))
         {
+            Log.d(TAG,"inside block of checking if there location or not");
 
             mapFragment.getMapAsync(this);
             startB.setVisibility(View.VISIBLE);
@@ -249,10 +254,10 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         DestinationDB destinationDB = new DestinationDB(this);
         Log.d(TAG, "we are here ");
         LatLng latLng = destinationDB.getDestination();
+
         if (latLng != null && !hasIntent) {
             finish();
         }
-
 
     }//end of onResume
 
@@ -315,7 +320,12 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
         if (item.getItemId() == R.id.signOut) {
 
+
+            Log.d(TAG,CustomFirebase.getUserAuth().getUid());
+            UserDB db=new UserDB(this);
+            db.deleteUser(db.getAllUsers().get(0).getId());
             CustomFirebase.getUserAuth().signOut();
+
             startActivity(new Intent(this, Login.class));
             finish();
 
