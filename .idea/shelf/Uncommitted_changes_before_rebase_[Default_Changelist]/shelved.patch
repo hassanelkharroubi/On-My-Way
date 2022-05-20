@@ -1,0 +1,117 @@
+Index: app/src/main/java/com/example/onmyway/General/Login.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.onmyway.General;\n\n\nimport android.content.DialogInterface;\nimport android.content.Intent;\nimport android.content.pm.PackageManager;\nimport android.location.LocationManager;\nimport android.os.Bundle;\nimport android.provider.Settings;\nimport android.text.TextUtils;\nimport android.util.Log;\nimport android.util.Patterns;\nimport android.view.View;\nimport android.widget.EditText;\n\nimport androidx.annotation.NonNull;\nimport androidx.annotation.Nullable;\nimport androidx.appcompat.app.AlertDialog;\nimport androidx.appcompat.app.AppCompatActivity;\nimport androidx.core.app.ActivityCompat;\nimport androidx.core.content.ContextCompat;\n\nimport com.example.onmyway.Models.Administrateur;\nimport com.example.onmyway.Models.CustomFirebase;\nimport com.example.onmyway.Models.User;\nimport com.example.onmyway.Models.UserDB;\nimport com.example.onmyway.R;\nimport com.example.onmyway.User.View.HomeUser;\nimport com.example.onmyway.Utils.Constants;\nimport com.example.onmyway.Utils.CustomToast;\nimport com.example.onmyway.Utils.DialogMsg;\nimport com.example.onmyway.administrateur.View.Home;\nimport com.google.android.gms.common.ConnectionResult;\nimport com.google.android.gms.common.GoogleApiAvailability;\nimport com.google.android.gms.tasks.OnCompleteListener;\nimport com.google.android.gms.tasks.Task;\nimport com.google.firebase.auth.AuthResult;\nimport com.google.firebase.auth.FirebaseAuth;\nimport com.google.firebase.auth.FirebaseUser;\nimport com.google.firebase.database.DataSnapshot;\nimport com.google.firebase.database.DatabaseError;\nimport com.google.firebase.database.DatabaseReference;\nimport com.google.firebase.database.Query;\nimport com.google.firebase.database.ValueEventListener;\n\nimport java.util.ArrayList;\n\npublic class Login extends AppCompatActivity {\n    private FirebaseAuth mAuth;\n    private DatabaseReference ref;\n    private static final String TAG=\"Login\";\n\n    private String email;\n    private EditText editTextEmail;\n    private EditText editTextPassword;\n\n\n    private DialogMsg dialogMsg=new DialogMsg();\n    private boolean gps_enabled=false;\n    private boolean mLocationPermissionGranted=false;\n\n    @Override\n    protected void onCreate(Bundle savedInstanceState) {\n        super.onCreate(savedInstanceState);\n        setContentView(R.layout.activity_login);\n        if (!checkGooglePlayServices())\n            // finish();\n            Log.d(TAG, \"google play services are not correct\");\n\n        //getLocationPermission();\n\n        FirebaseUser user= CustomFirebase.getCurrentUser();\n\n        ref= CustomFirebase.getDataRefLevel1(getResources().getString(R.string.UserData));\n\n\n        if (user != null) {\n            if (Administrateur.email.equals(user.getEmail()))\n            {\n                Intent intent=new Intent(Login.this, Home.class);\n                startActivity(intent);\n                finish();\n                return;\n            }\n            UserDB userDB=new UserDB(Login.this);\n            ArrayList<User> users=userDB.getAllUsers();\n            Intent intent=new Intent(Login.this, HomeUser.class);\n            intent.putExtra(\"email\",user.getEmail());\n            intent.putExtra(\"fullName\",users.get(0).getfullName());\n            intent.putExtra(\"cin\",users.get(0).getId());\n            startActivity(intent);\n            finish();\n\n        }\n        // Initialize Firebase Auth\n        mAuth = CustomFirebase.getUserAuth();\n        editTextEmail=findViewById(R.id.email);\n        editTextPassword=findViewById(R.id.password);\n\n\n    }//end of create() method\n\n\n    public void login(View view) {\n\n\n\n        email=editTextEmail.getText().toString();\n        String password = editTextPassword.getText().toString();\n        if(!isEmail(email) || password.isEmpty())\n        {\n            CustomToast.toast(this, \"veuillez valider soit email soit le mot de passe\");\n            return;\n\n        }\n\n        dialogMsg.attendre(this,\"Verification\",\"Veuillez attendre \");\n\n        mAuth.signInWithEmailAndPassword(email, password)\n                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {\n\n\n                    @Override\n                    public void onComplete(@NonNull Task<AuthResult> task) {\n                        if (task.isSuccessful())\n                        {\n                            Log.d(TAG,\"user signed in\");\n                            if(email.equals(Administrateur.email))\n                            {\n                                dialogMsg.hideDialog();\n                                Intent intent=new Intent(Login.this,Home.class);\n                                startActivity(intent);\n                                finish();\n                            }\n                            else\n                            {\n                                Query query= ref.orderByKey().equalTo(mAuth.getUid());\n                                query.addValueEventListener(new ValueEventListener() {\n                                    @Override\n                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {\n                                        dialogMsg.hideDialog();\n                                        if(dataSnapshot.hasChildren())\n                                        {\n\n                                            for (DataSnapshot userData:dataSnapshot.getChildren())\n                                            {\n                                                User user=userData.getValue(User.class);\n                                                if(user!=null)\n                                                {\n                                                    UserDB userDB=new UserDB(Login.this);\n                                                    userDB.addUser(user);\n                                                    Intent intent=new Intent(Login.this, HomeUser.class);\n                                                    intent.putExtra(\"email\",user.getEmail());\n                                                    intent.putExtra(\"fullName\",user.getfullName());\n                                                    intent.putExtra(\"cin\",user.getId());\n                                                    startActivity(intent);\n                                                    finish();\n\n                                                }\n                                            }\n                                        }\n\n\n\n                                        else\n                                        {\n\n                                            CustomToast.toast(Login.this, \"cet utilisateur n'existe pas\");\n                                            mAuth.signOut();\n                                        }\n\n                                    }\n\n                                    @Override\n                                    public void onCancelled(@NonNull DatabaseError databaseError) {\n                                        CustomToast.toast(Login.this, \"Veuillez verfier votre connection \");\n\n                                    }\n                                });\n\n                            }\n\n                        }//end of if statment of succusfull task of sigin\n                        else\n                            {\n                                CustomToast.toast(Login.this, \"le mot de passe ou email est incorrect \");\n                                dialogMsg.hideDialog();\n\n\n                          }\n\n                    }\n                });\n\n\n    }\n\n    //fonction de verification email\n    public static boolean isEmail(CharSequence target) {\n        return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());\n    }\n\n\n    //check google play services\n    private boolean checkGooglePlayServices()\n    {\n        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();\n        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);\n        if (resultCode != ConnectionResult.SUCCESS)\n        {\n            if (apiAvailability.isUserResolvableError(resultCode))\n            {\n                apiAvailability.getErrorDialog(this, resultCode, Constants.GOOGLE_PLAY_SERVICES_REQUEST)\n                        .show();\n            } else\n                {\n\n                    CustomToast.toast(getApplicationContext(), \"votre telephone n'est pas mise a jour \");\n                finish();\n            }\n            return false;\n        }\n        return true;\n    }\n\n    //ask for permissions\n    private boolean isGPSEnabled() {\n\n        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);\n        if (locationManager != null)\n        {\n\n            if (gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))\n                return gps_enabled;\n            new AlertDialog.Builder(this)\n                    .setMessage(\"Activer GPS !.\")\n                    .setPositiveButton(\"Activer\",\n                            new DialogInterface.OnClickListener() {\n                                @Override\n                                public void onClick(DialogInterface paramDialogInterface, int paramInt) {\n                                    startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), Constants.GPS_REQUEST_CODE);\n                                }\n                            })\n                    .setCancelable(false)\n                    .show();\n        }\n\n        return false;\n\n    }//end of GPSEnabled()\n\n\n    //handle the result of startActivityForResult\n    @Override\n    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {\n        super.onActivityResult(requestCode, resultCode, data);\n\n        switch (requestCode) {\n            case Constants.GPS_REQUEST_CODE:\n            {\n\n                gps_enabled=isGPSEnabled();\n\n                break;\n            }\n        }\n    }//end of onActivityResult()\n\n\n    private void getLocationPermission() {\n        /*\n         * Request location permission, so that we can get the location of the\n         * device. The result of the permission request is handled by a callback,\n         * onRequestPermissionsResult.\n         */\n        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), Constants.FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)\n        {\n            mLocationPermissionGranted = true;\n            Log.d(TAG,\"all permission are granetd\");\n        } else {\n            ActivityCompat.requestPermissions(this, new String[]{Constants.FINE_LOCATION}, Constants.REQUEST_FINE_LOCATION);\n        }\n    }//end of getLocationPermission\n\n    @Override\n    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)\n    {\n        mLocationPermissionGranted = false;\n        switch (requestCode)\n        {\n            case Constants.REQUEST_FINE_LOCATION:\n            {\n                // If request is cancelled, the result arrays are empty.\n                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)\n                {\n                    mLocationPermissionGranted = true;\n                }\n                else\n                    getLocationPermission();\n            }\n        }\n\n    }//end of onRequestPermissionsResult(...);\n\n    @Override\n    protected void onResume() {\n        super.onResume();\n\n        if(checkGooglePlayServices())\n        {\n            getLocationPermission();\n            if(mLocationPermissionGranted)\n                gps_enabled=isGPSEnabled();\n        }\n\n\n    }\n}\n\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/onmyway/General/Login.java b/app/src/main/java/com/example/onmyway/General/Login.java
+--- a/app/src/main/java/com/example/onmyway/General/Login.java	(revision 376b0937dc15f5355d0f6c862776b39333faf863)
++++ b/app/src/main/java/com/example/onmyway/General/Login.java	(date 1652816125474)
+@@ -63,6 +63,8 @@
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_login);
++
++        Log.d(TAG,"inside Login");
+         if (!checkGooglePlayServices())
+             // finish();
+             Log.d(TAG, "google play services are not correct");
+@@ -85,6 +87,7 @@
+             UserDB userDB=new UserDB(Login.this);
+             ArrayList<User> users=userDB.getAllUsers();
+             Intent intent=new Intent(Login.this, HomeUser.class);
++            Log.d(TAG,"user is null "+user.getEmail()+" "+users.get(0).getfullName());
+             intent.putExtra("email",user.getEmail());
+             intent.putExtra("fullName",users.get(0).getfullName());
+             intent.putExtra("cin",users.get(0).getId());
+@@ -92,19 +95,17 @@
+             finish();
+ 
+         }
+-        // Initialize Firebase Auth
+-        mAuth = CustomFirebase.getUserAuth();
+-        editTextEmail=findViewById(R.id.email);
+-        editTextPassword=findViewById(R.id.password);
+-
++        else{
++            Log.d(TAG,"user is  null");
++            // Initialize Firebase Auth
++            mAuth = CustomFirebase.getUserAuth();
++            editTextEmail=findViewById(R.id.email);
++            editTextPassword=findViewById(R.id.password);
++        }
+ 
+     }//end of create() method
+ 
+-
+     public void login(View view) {
+-
+-
+-
+         email=editTextEmail.getText().toString();
+         String password = editTextPassword.getText().toString();
+         if(!isEmail(email) || password.isEmpty())
+@@ -113,6 +114,9 @@
+             return;
+ 
+         }
++        Intent intent=new Intent(Login.this,Home.class);
++        startActivity(intent);
++        finish();
+ 
+         dialogMsg.attendre(this,"Verification","Veuillez attendre ");
+ 
+@@ -145,6 +149,10 @@
+                                             for (DataSnapshot userData:dataSnapshot.getChildren())
+                                             {
+                                                 User user=userData.getValue(User.class);
++                                                Log.d(TAG,user.getfullName());
++
++                                                Log.d(TAG,user.getEmail());
++
+                                                 if(user!=null)
+                                                 {
+                                                     UserDB userDB=new UserDB(Login.this);
+@@ -283,19 +291,15 @@
+     }//end of getLocationPermission
+ 
+     @Override
+-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+-    {
++    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
++        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+         mLocationPermissionGranted = false;
+-        switch (requestCode)
+-        {
+-            case Constants.REQUEST_FINE_LOCATION:
+-            {
++        switch (requestCode) {
++            case Constants.REQUEST_FINE_LOCATION: {
+                 // If request is cancelled, the result arrays are empty.
+-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+-                {
++                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                     mLocationPermissionGranted = true;
+-                }
+-                else
++                } else
+                     getLocationPermission();
+             }
+         }
+Index: app/src/main/java/com/example/onmyway/Models/UserDB.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.onmyway.Models;\n\nimport android.content.ContentValues;\nimport android.content.Context;\nimport android.database.Cursor;\nimport android.database.sqlite.SQLiteDatabase;\nimport android.database.sqlite.SQLiteOpenHelper;\nimport android.util.Log;\n\nimport androidx.annotation.Nullable;\n\nimport java.util.ArrayList;\n\npublic class UserDB extends SQLiteOpenHelper {\n\n    public static final String TAG = \"UserDB\";\n\n    private static final String BD_NAME=\"GestionUSER\";\n    private static final String TABLE=\"user\";\n    private static final int VERSION=1;\n    //les colounes de notre tableau ;\n\n    private static final String ID=\"ID\";\n    private static final String NAME=\"NAME\";\n    private static final String EMAIL=\"EMAIL\";\n    private static final String PASSWORD=\"PASSWORD\";\n\n\n    public UserDB(@Nullable Context context) {\n\n        super(context, BD_NAME, null, VERSION);\n    }\n\n    @Override\n    public void onCreate(SQLiteDatabase db) {\n\n        String request=\"CREATE TABLE if not exists \"+TABLE+\" (\"+ID+\" varchar(20) primary key,\"+NAME+\" varchar(30),\"+EMAIL+\" varchar(30),\"+PASSWORD+\" varchar(30))\";\n        db.execSQL(request);\n\n\n\n\n    }\n\n    @Override\n    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {\n\n        String detele_table=\"drop table if exists \"+TABLE;\n        db.execSQL(detele_table);\n        onCreate(db);\n\n    }\n\n    public void addUser(User user)\n    {\n        SQLiteDatabase db=getWritableDatabase();\n        ContentValues data=new ContentValues();\n        data.put(ID,user.getId());\n        data.put(NAME,user.getfullName());\n        data.put(EMAIL,user.getEmail());\n        data.put(PASSWORD,user.getPassword());\n        db.insert(TABLE,null,data);\n    }\n\n\n    public int deleteUser(String id)\n    {\n        SQLiteDatabase db=getWritableDatabase();\n        int deleted=db.delete(TABLE,ID+\" =?\",new String[]{id});\n        db.close();\n\n       return deleted;\n\n    }\n\n    public User findUserByCin(final String cin)\n\n    {\n        Log.d(TAG, cin);\n        User user = null;\n        SQLiteDatabase db = getReadableDatabase();\n        String query = \"SELECT * FROM \" + TABLE + \" WHERE upper(\" + ID + \") =?\";\n        Cursor cursor = db.rawQuery(query, new String[]{cin});\n        if (cursor.moveToFirst()) {\n\n            user = new User();\n            user.setEmail(cursor.getString(cursor.getColumnIndex(EMAIL)));\n            user.setfullName(cursor.getString(cursor.getColumnIndex(NAME)));\n            user.setId(cursor.getString(cursor.getColumnIndex(ID)));\n            user.setPassword(cursor.getString(cursor.getColumnIndex(PASSWORD)));\n        }\n        db.close();\n        cursor.close();\n\n        return user;\n    }\n\n    public ArrayList<User> getAllUsers()\n    {\n        SQLiteDatabase db=getReadableDatabase();\n\n        String query=\"select * from \"+TABLE;\n\n        ArrayList<User> users=new ArrayList<>();\n        User user=new User();\n\n        Cursor cursor= db.rawQuery(query,null);\n        if(cursor.moveToFirst())\n        {\n\n            do {\n                user.setId(cursor.getString(cursor.getColumnIndex(ID)));\n                user.setfullName(cursor.getString(cursor.getColumnIndex(NAME)));\n                user.setEmail( cursor.getString(cursor.getColumnIndex(EMAIL)));\n                user.setPassword( cursor.getString(cursor.getColumnIndex(PASSWORD)));\n\n                users.add(user);\n                //we have change reference of user or we will be add the same user to last position\n                user=new User();\n\n            }while(cursor.moveToNext());\n\n        }\n        cursor.close();\n        return users;\n\n\n    }\n\n    public void addUsers(ArrayList<User> users) {\n\n        int i=0;\n\n        while(i<users.size())\n        {\n            this.addUser(users.get(i));\n            Log.i(\"userData\",users.get(i).getEmail()+\"password : \"+users.get(i).getPassword()+\"full name :\"+users.get(i).getfullName() );\n\n\n            i++;\n        }\n\n\n    }\n\n\n\n}\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/onmyway/Models/UserDB.java b/app/src/main/java/com/example/onmyway/Models/UserDB.java
+--- a/app/src/main/java/com/example/onmyway/Models/UserDB.java	(revision 376b0937dc15f5355d0f6c862776b39333faf863)
++++ b/app/src/main/java/com/example/onmyway/Models/UserDB.java	(date 1652814509756)
+@@ -145,4 +145,5 @@
+ 
+ 
+ 
++
+ }
