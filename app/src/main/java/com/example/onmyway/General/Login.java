@@ -82,9 +82,19 @@ public class Login extends AppCompatActivity {
         UserDB userDB=new UserDB(Login.this);
         ArrayList<User> users=userDB.getAllUsers();
         if (users.size()>0){
-            Intent intent=new Intent(Login.this, HomeUser.class);
-            startActivity(intent);
-            finish();
+            if (users.get(0).getAdmin().equals("yes")){
+                Intent intent=new Intent(Login.this, Home.class);
+                startActivity(intent);
+                finish();
+
+            }
+            else{
+                Intent intent=new Intent(Login.this, HomeUser.class);
+                startActivity(intent);
+                finish();
+
+            }
+
 
         }
 
