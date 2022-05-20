@@ -35,6 +35,7 @@
             android:focusable="true"
             android:hint="@string/fullname"
             android:inputType="textPersonName"
+            android:minHeight="48dp"
             android:padding="10dp"
             android:textColorHint="@color/forText" />
 
@@ -50,6 +51,7 @@
             android:elevation="2dp"
             android:hint="@string/cin"
             android:inputType="textPersonName"
+            android:minHeight="48dp"
             android:padding="10dp"
             android:textColorHint="@color/forText" />
 
@@ -66,6 +68,7 @@
             android:elevation="2dp"
             android:hint="@string/username"
             android:inputType="textEmailAddress"
+            android:minHeight="48dp"
             android:padding="10dp"
             android:textColorHint="@color/forText" />
 
@@ -81,6 +84,7 @@
             android:elevation="2dp"
             android:hint="@string/password"
             android:inputType="textPassword"
+            android:minHeight="48dp"
             android:padding="10dp"
             android:textColorHint="@color/forText" />
 
@@ -96,6 +100,7 @@
             android:elevation="2dp"
             android:hint="@string/confirmpasswd"
             android:inputType="textPassword"
+            android:minHeight="48dp"
             android:padding="10dp"
             android:textColorHint="@color/forText" />
 

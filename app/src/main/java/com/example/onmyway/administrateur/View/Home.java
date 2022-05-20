@@ -11,6 +11,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.onmyway.General.Login;
 import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
+import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 
 
@@ -29,7 +30,7 @@ public class Home extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Accueil");
-        textView1.setText(Administrateur.fullame);
+        textView1.setText(new UserDB(this).getAllUsers().get(0).getfullName());
 
     }
 

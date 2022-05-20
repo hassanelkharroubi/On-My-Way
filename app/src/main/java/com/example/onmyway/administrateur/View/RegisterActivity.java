@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,11 +17,20 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.onmyway.General.Login;
 import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
+import com.example.onmyway.User.View.HomeUser;
 import com.example.onmyway.Utils.CustomToast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -28,6 +38,9 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class RegisterActivity extends AppCompatActivity {
@@ -96,52 +109,60 @@ public class RegisterActivity extends AppCompatActivity {
         MenuInflater inflater=getMenuInflater();
         inflater.inflate(R.menu.toolbar,menu);
         menu.removeItem(R.id.ajouter);
-
         return super.onCreateOptionsMenu(menu);
 }
 
     public void register(View view) {
 
-
         if(allInputValid())
         {
 
-            mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
-            {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful())
-                            {
-                                myRef.child( mAuth.getUid()).setValue(user);
+            //todo : on suppose que tous clients ne sont pas amdin
+            RequestQueue queue = Volley.newRequestQueue(this);
+// Request a string response from the provided URL.
+            String url = "https://goapppfe.000webhostapp.com/Ajout.php?" +
+                    "cin=" +user.getId()+
+                    "&email=" +user.getEmail()+
+                    "&fullname=" +user.getfullName()+
+                    "&admin=no" +
+                    "&passowrd="+user.getPassword();
+            Log.d(TAG,url);
 
-                                //i the same time we have to add this user to local data base
-                                userDB.addUser(user);
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url,
+                    null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
 
-                                CustomToast.toast(RegisterActivity.this, "Authentication success.");
+                    if (response.has("success")){
+                        //todo : informer admin que l'utilisateur a ete bien ajoute
+                        //les donnes sont correct
 
-                                mAuth.signOut();
-                                mAuth.signInWithEmailAndPassword(Administrateur.email,Administrateur.password);
+                    }
+                    // todo : else erreur de qlq part
 
-                                startActivity(new Intent(RegisterActivity.this,RegisterActivity.class));
-                            }
-                            else
-                            {
+                }
+            }, new Response.ErrorListener() {
 
-                                CustomToast.toast(RegisterActivity.this, "on ne peut pas ajouter neveau utilidateur !Verfier votre connection.");
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    // TODO: Handle error
+                    Log.d(TAG,"erreur de Volley "+error.getLocalizedMessage());
 
+                }
+            });
 
-                            }
-                        }
-                    });
+            jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    60000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            queue.add(jsonObjectRequest);
+
 
         }
         else
         {
-
             CustomToast.toast(this, "Veuilez verifier les donnees que vouz avez saisi ....!");
         }
-
-
 
     }
 
@@ -162,8 +183,6 @@ public class RegisterActivity extends AppCompatActivity {
     public static boolean isEmail(CharSequence target) {
         return (!TextUtils.isEmpty(target) && Patterns.EMAIL_ADDRESS.matcher(target).matches());
     }
-
-
     //this method will valid input in the RegisterActivity.java
     private boolean allInputValid()
     {
@@ -176,7 +195,7 @@ public class RegisterActivity extends AppCompatActivity {
        if(!cin.isEmpty() && !fullName.isEmpty() && isEmail(email)
                && !password.isEmpty() && password.equals(confirmPassword))
        {
-           user = new User(fullName, email, password, cin.toUpperCase());
+           user = new User(fullName, email.toLowerCase(), password, cin.toUpperCase());
            return true;
        }
        return  false;

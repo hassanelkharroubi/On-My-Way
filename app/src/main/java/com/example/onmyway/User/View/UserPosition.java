@@ -7,6 +7,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -16,15 +17,26 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.onmyway.General.Login;
 import com.example.onmyway.GoogleDirection.FetchURL;
 import com.example.onmyway.GoogleDirection.ShowDirection;
 import com.example.onmyway.GoogleDirection.TaskLoadedCallback;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.DestinationDB;
 import com.example.onmyway.Models.GeoPoint;
+import com.example.onmyway.Models.User;
+import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.Service.MyBackgroundLocationService;
 import com.example.onmyway.Utils.Constants;
+import com.example.onmyway.Utils.CustomToast;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -37,6 +49,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseReference;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class UserPosition extends FragmentActivity implements OnMapReadyCallback, TaskLoadedCallback {
@@ -55,9 +70,9 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     private Boolean mLocationPermissionGranted= false;
     private boolean gps_enabled=false;
     private LocationManager locationManager;
-    private DatabaseReference ref;
     //for stop backgound services
     private boolean stop=false;
+    private String mCin;
 
     private int counterForUpdateTimeDestination = 0;
 
@@ -66,12 +81,12 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_position);
+        mCin=new UserDB(this).getAllUsers().get(0).getId();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        ref=CustomFirebase.getDataRefLevel1(getString(R.string.OnlineUserLocation));
         markerOptions = new MarkerOptions();
 
         locationCallback = new LocationCallback()
@@ -100,11 +115,55 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
                             String url = ShowDirection.getUrl(origin, new DestinationDB(UserPosition.this).getDestination(), "driving", getString(R.string.google_map_api));
                             new FetchURL(UserPosition.this).execute(url, "driving");
                             counterForUpdateTimeDestination = 0;
-
-
                         }
                         moveCamera(origin, Constants.DEFAULT_ZOOM);
-                        ref.child(CustomFirebase.getCurrentUser().getUid()).setValue(geoPoint);
+
+                        // todo : insert to database locations
+
+                        RequestQueue queue = Volley.newRequestQueue(UserPosition.this);
+// Request a string response from the provided URL.
+                        String url = "https://goapppfe.000webhostapp.com/insert_coordinate.php?" +
+                                "cin="+mCin+
+                                "&latitude="+location.getLatitude() +
+                                "&longitude="+location.getLongitude() +
+                                "&speed="+location.getSpeed() +
+                                "&time="+location.getTime();
+                        Log.d(TAG,url);
+
+                        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url,
+                                null, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+
+                                if (response.has("success")){
+                                    //les donnes sont correct
+                                    //todo : you can add here what you want after updatign location on map
+                                    Log.d(TAG,"inserted correctly");
+                                }
+                                else{
+                                    //todo: coordiantes don't insert
+                                    Log.d(TAG,"erreur de mise a jour les donnes");
+                                }
+
+
+                            }
+                        }, new Response.ErrorListener() {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                // TODO: Handle error
+                                Log.d(TAG,"erreur de Volley "+error.getLocalizedMessage());
+
+                            }
+                        });
+
+                        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
+                                60000,
+                                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                        queue.add(jsonObjectRequest);
+
+
 
                     }
 
@@ -321,10 +380,10 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onTaskDone(String distance, String duration, Object... values) {
-        String userkey = CustomFirebase.getCurrentUser().getUid();
-
-        CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination)).child(userkey).child("duration").setValue(duration);
-        CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination)).child(userkey).child("distance").setValue(distance);
+//        String userkey = CustomFirebase.getCurrentUser().getUid();
+//
+//        CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination)).child(userkey).child("duration").setValue(duration);
+//        CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination)).child(userkey).child("distance").setValue(distance);
 
 
     }

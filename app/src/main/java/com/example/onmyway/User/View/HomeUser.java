@@ -182,7 +182,8 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
     public void getLastLocation() {
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             Log.d(TAG,"permission is not granted");
             // TODO: Consider calling
@@ -223,12 +224,6 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
 
         Log.d(TAG,"inside onResume");
 
-        if (CheckLogin.toLogin(this)) finish();
-
-        Log.d(TAG,"after checking is logging");
-
-
-
         Intent intent=getIntent();
         boolean hasIntent = false;
         if(intent.hasExtra("address") || intent.hasExtra("latlang"))
@@ -246,7 +241,6 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
                 addressV.setText(intent.getStringExtra("address"));
             else
                 addressV.setText("latitude "+latLng.latitude+",longitude "+latLng.longitude);
-
         }
         //we can go back from userPosition by press onback key
         //so we have to check if tranporter is working or not
@@ -269,7 +263,6 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         DestinationDB destinationDB = new DestinationDB(this);
         destinationDB.deleteDestination();
     }
-
     //handle the result of startActivityForResult
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -281,7 +274,6 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
                 gps_enabled=isGPSEnabled();
                 if (gps_enabled) {
                     getLastLocation();
-
                 }
                 break;
             }
@@ -321,16 +313,12 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         if (item.getItemId() == R.id.signOut) {
 
 
-            Log.d(TAG,CustomFirebase.getUserAuth().getUid());
             UserDB db=new UserDB(this);
             db.deleteUser(db.getAllUsers().get(0).getId());
-            CustomFirebase.getUserAuth().signOut();
-
             startActivity(new Intent(this, Login.class));
             finish();
 
         }
-
         return super.onOptionsItemSelected(item);
 
     }

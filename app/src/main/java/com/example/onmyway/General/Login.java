@@ -20,6 +20,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
@@ -43,11 +51,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 public class Login extends AppCompatActivity {
-    private FirebaseAuth mAuth;
-    private DatabaseReference ref;
     private static final String TAG="Login";
 
     private String email;
@@ -63,47 +72,32 @@ public class Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        Log.d(TAG,"inside Login");
         if (!checkGooglePlayServices())
             // finish();
             Log.d(TAG, "google play services are not correct");
 
         //getLocationPermission();
-
-        FirebaseUser user= CustomFirebase.getCurrentUser();
-
-        ref= CustomFirebase.getDataRefLevel1(getResources().getString(R.string.UserData));
-
-
-        if (user != null) {
-            if (Administrateur.email.equals(user.getEmail()))
-            {
-                Intent intent=new Intent(Login.this, Home.class);
-                startActivity(intent);
-                finish();
-                return;
-            }
-            UserDB userDB=new UserDB(Login.this);
-            ArrayList<User> users=userDB.getAllUsers();
+        UserDB userDB=new UserDB(Login.this);
+        ArrayList<User> users=userDB.getAllUsers();
+        if (users.size()>0){
             Intent intent=new Intent(Login.this, HomeUser.class);
-            intent.putExtra("email",user.getEmail());
-            intent.putExtra("fullName",users.get(0).getfullName());
-            intent.putExtra("cin",users.get(0).getId());
             startActivity(intent);
             finish();
 
         }
-        // Initialize Firebase Auth
-        mAuth = CustomFirebase.getUserAuth();
-        editTextEmail=findViewById(R.id.email);
-        editTextPassword=findViewById(R.id.password);
 
+        else{
+            Log.d(TAG,"user is  null");
+            // Initialize Firebase Auth
+            editTextEmail=findViewById(R.id.email);
+            editTextPassword=findViewById(R.id.password);
+        }
 
     }//end of create() method
 
-
     public void login(View view) {
-
-
 
         email=editTextEmail.getText().toString();
         String password = editTextPassword.getText().toString();
@@ -111,89 +105,83 @@ public class Login extends AppCompatActivity {
         {
             CustomToast.toast(this, "veuillez valider soit email soit le mot de passe");
             return;
-
         }
 
         dialogMsg.attendre(this,"Verification","Veuillez attendre ");
 
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
 
+        RequestQueue queue = Volley.newRequestQueue(this);
+// Request a string response from the provided URL.
+        String url = "https://goapppfe.000webhostapp.com/login.php?email="+email.toLowerCase()+"&password="+password;
+        Log.d(TAG,url);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url,
+                null, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                        if (response.has("CIN")){
+                            //les donnes sont correct
+                            try {
+                                dialogMsg.hideDialog();
+                                String cin=response.getString("CIN");
+                                String fullname=response.getString("fullname");
+                                String email=response.getString("Email");
+                                String password=response.getString("Password");
+                                String admin=response.getString("admin");
+                                User user=new User(fullname,email,password,cin,admin);
+                                UserDB userDB=new UserDB(Login.this);
+                                userDB.addUser(user);
+                                if (admin.equals("yes")){
+                                    Intent intent=new Intent(Login.this, Home.class);
+                                    startActivity(intent);
+                                    finish();
+
+                                }
+                                else{
+                                    Intent intent=new Intent(Login.this, HomeUser.class);
+                                    startActivity(intent);
+                                    finish();
+
+                                }
+
+                            } catch (JSONException e) {
+
+                                Log.e(TAG,"erreur de parse json object");
+                                e.printStackTrace();
+                            }
+                        }
+                        else{
+                            if (response.has("userNotFound")){
+                                dialogMsg.hideDialog();
+                                CustomToast.toast(Login.this, "cet utilisateur n'existe pas");
+                                //user n'existe pas
+                            }
+                            else{
+                                //erreur de cnx aqu base de donnees ou qlq chose comme ca (internet)
+                                dialogMsg.hideDialog();
+                                CustomToast.toast(Login.this, "Veuillez verfier votre connection ");
+                            }
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
 
                     @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful())
-                        {
-                            Log.d(TAG,"user signed in");
-                            if(email.equals(Administrateur.email))
-                            {
-                                dialogMsg.hideDialog();
-                                Intent intent=new Intent(Login.this,Home.class);
-                                startActivity(intent);
-                                finish();
-                            }
-                            else
-                            {
-                                Query query= ref.orderByKey().equalTo(mAuth.getUid());
-                                query.addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                        dialogMsg.hideDialog();
-                                        if(dataSnapshot.hasChildren())
-                                        {
-
-                                            for (DataSnapshot userData:dataSnapshot.getChildren())
-                                            {
-                                                User user=userData.getValue(User.class);
-                                                if(user!=null)
-                                                {
-                                                    UserDB userDB=new UserDB(Login.this);
-                                                    userDB.addUser(user);
-                                                    Intent intent=new Intent(Login.this, HomeUser.class);
-                                                    intent.putExtra("email",user.getEmail());
-                                                    intent.putExtra("fullName",user.getfullName());
-                                                    intent.putExtra("cin",user.getId());
-                                                    startActivity(intent);
-                                                    finish();
-
-                                                }
-                                            }
-                                        }
-
-
-
-                                        else
-                                        {
-
-                                            CustomToast.toast(Login.this, "cet utilisateur n'existe pas");
-                                            mAuth.signOut();
-                                        }
-
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                                        CustomToast.toast(Login.this, "Veuillez verfier votre connection ");
-
-                                    }
-                                });
-
-                            }
-
-                        }//end of if statment of succusfull task of sigin
-                        else
-                            {
-                                CustomToast.toast(Login.this, "le mot de passe ou email est incorrect ");
-                                dialogMsg.hideDialog();
-
-
-                          }
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO: Handle error
+                        dialogMsg.hideDialog();
+                        Log.d(TAG,"erreur de Volley "+error.getLocalizedMessage());
 
                     }
                 });
 
-
-    }
+        jsonObjectRequest.setRetryPolicy(new DefaultRetryPolicy(
+                60000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(jsonObjectRequest);
+    }//end login
 
     //fonction de verification email
     public static boolean isEmail(CharSequence target) {
@@ -283,19 +271,15 @@ public class Login extends AppCompatActivity {
     }//end of getLocationPermission
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         mLocationPermissionGranted = false;
-        switch (requestCode)
-        {
-            case Constants.REQUEST_FINE_LOCATION:
-            {
+        switch (requestCode) {
+            case Constants.REQUEST_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                }
-                else
+                } else
                     getLocationPermission();
             }
         }

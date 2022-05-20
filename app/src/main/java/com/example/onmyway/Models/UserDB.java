@@ -22,6 +22,7 @@ public class UserDB extends SQLiteOpenHelper {
 
     private static final String ID="ID";
     private static final String NAME="NAME";
+    private static final String ADMIN="ADMIN";
     private static final String EMAIL="EMAIL";
     private static final String PASSWORD="PASSWORD";
 
@@ -34,7 +35,11 @@ public class UserDB extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        String request="CREATE TABLE if not exists "+TABLE+" ("+ID+" varchar(20) primary key,"+NAME+" varchar(30),"+EMAIL+" varchar(30),"+PASSWORD+" varchar(30))";
+        String request="CREATE TABLE if not exists "+TABLE+" ("+ID+" varchar(20) primary key," +
+                ""+NAME+" varchar(30)," +
+                ""+EMAIL+" varchar(30)," +
+                ""+PASSWORD+" varchar(30)," +
+                ""+ADMIN+" varchar(5))";
         db.execSQL(request);
 
 
@@ -59,6 +64,7 @@ public class UserDB extends SQLiteOpenHelper {
         data.put(NAME,user.getfullName());
         data.put(EMAIL,user.getEmail());
         data.put(PASSWORD,user.getPassword());
+        data.put(ADMIN,user.getAdmin());
         db.insert(TABLE,null,data);
     }
 
@@ -88,6 +94,7 @@ public class UserDB extends SQLiteOpenHelper {
             user.setfullName(cursor.getString(cursor.getColumnIndex(NAME)));
             user.setId(cursor.getString(cursor.getColumnIndex(ID)));
             user.setPassword(cursor.getString(cursor.getColumnIndex(PASSWORD)));
+            user.setAdmin(cursor.getString(cursor.getColumnIndex(ADMIN)));
         }
         db.close();
         cursor.close();
@@ -113,6 +120,7 @@ public class UserDB extends SQLiteOpenHelper {
                 user.setfullName(cursor.getString(cursor.getColumnIndex(NAME)));
                 user.setEmail( cursor.getString(cursor.getColumnIndex(EMAIL)));
                 user.setPassword( cursor.getString(cursor.getColumnIndex(PASSWORD)));
+                user.setAdmin(cursor.getString(cursor.getColumnIndex(ADMIN)));
 
                 users.add(user);
                 //we have change reference of user or we will be add the same user to last position
@@ -142,6 +150,7 @@ public class UserDB extends SQLiteOpenHelper {
 
 
     }
+
 
 
 

@@ -7,6 +7,16 @@ public class User {
     private String password;
     //user id==cin
     private String cin;
+
+    public String getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(String admin) {
+        this.admin = admin;
+    }
+
+    private String admin;
     public User()
     {
         //this Constructor is for DataSnapShot for firebase
@@ -18,6 +28,14 @@ public class User {
         this.email = email;
         this.password = password;
         this.cin = id;
+    }
+
+    public User(String fullname, String email, String password, String id,String admin) {
+        this.fullName = fullname;
+        this.email = email;
+        this.password = password;
+        this.cin = id;
+        this.admin=admin;
     }
 
     public String getfullName() {

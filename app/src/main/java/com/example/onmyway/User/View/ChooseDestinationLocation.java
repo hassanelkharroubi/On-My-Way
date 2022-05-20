@@ -45,7 +45,6 @@ public class ChooseDestinationLocation extends AppCompatActivity implements OnMa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_destination_location);
-        if (CheckLogin.toLogin(this)) finish();
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         locationMarker=new MarkerOptions();
         mapFragment.getMapAsync(this);
