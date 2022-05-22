@@ -1,5 +1,6 @@
 package com.example.onmyway.User.View;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,6 +32,7 @@ import com.example.onmyway.GoogleDirection.TaskLoadedCallback;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.DestinationDB;
 import com.example.onmyway.Models.GeoPoint;
+import com.example.onmyway.Models.SaveUser;
 import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
@@ -47,6 +49,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.DatabaseReference;
 
@@ -63,15 +66,16 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     private LatLng origin;
     private SupportMapFragment mapFragment;
     private MarkerOptions markerOptions;
-//loaction permission
+    private Marker marker;
+    //loaction permission
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-    private Boolean mLocationPermissionGranted= false;
-    private boolean gps_enabled=false;
+    private Boolean mLocationPermissionGranted = false;
+    private boolean gps_enabled = false;
     private LocationManager locationManager;
     //for stop backgound services
-    private boolean stop=false;
+    private boolean stop = false;
     private String mCin;
 
     private int counterForUpdateTimeDestination = 0;
@@ -81,7 +85,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_position);
-        mCin=new UserDB(this).getAllUsers().get(0).getId();
+        mCin = new SaveUser(this).getUser().getId();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -89,22 +93,17 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
 
         markerOptions = new MarkerOptions();
 
-        locationCallback = new LocationCallback()
-        {
+        locationCallback = new LocationCallback() {
             @Override
-            public void onLocationResult(LocationResult locationResult)
-            {
+            public void onLocationResult(LocationResult locationResult) {
 
                 super.onLocationResult(locationResult);
 
-                for (Location location : locationResult.getLocations())
-                {
-                    if (location != null )
-
-                    {
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
                         counterForUpdateTimeDestination++;
 
-                        GeoPoint geoPoint=new GeoPoint();
+                        GeoPoint geoPoint = new GeoPoint();
                         geoPoint.setLongitude(location.getLongitude());
                         geoPoint.setLatitude(location.getLatitude());
                         geoPoint.setTime(location.getTime());
@@ -116,33 +115,38 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
                             new FetchURL(UserPosition.this).execute(url, "driving");
                             counterForUpdateTimeDestination = 0;
                         }
-                        moveCamera(origin, Constants.DEFAULT_ZOOM);
+                        if (marker != null)
+                            marker.remove();
+                        moveCamera(origin, mMap.getCameraPosition().zoom);
 
                         // todo : insert to database locations
 
                         RequestQueue queue = Volley.newRequestQueue(UserPosition.this);
 // Request a string response from the provided URL.
                         String url = "https://goapppfe.000webhostapp.com/insert_coordinate.php?" +
-                                "cin="+mCin+
-                                "&latitude="+location.getLatitude() +
-                                "&longitude="+location.getLongitude() +
-                                "&speed="+location.getSpeed() +
-                                "&time="+location.getTime();
-                        Log.d(TAG,url);
+                                "cin=" + mCin +
+                                "&latitude=" + location.getLatitude() +
+                                "&longitude=" + location.getLongitude() +
+                                "&speed=" + location.getSpeed() +
+                                "&time=" + location.getTime();
+                        Log.d(TAG, url);
 
                         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url,
                                 null, new Response.Listener<JSONObject>() {
                             @Override
                             public void onResponse(JSONObject response) {
 
-                                if (response.has("success")){
+                                if (response.has("success")) {
                                     //les donnes sont correct
                                     //todo : you can add here what you want after updatign location on map
-                                    Log.d(TAG,"inserted correctly");
-                                }
-                                else{
+                                    try {
+                                        Log.d(TAG, response.getString("success"));
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
                                     //todo: coordiantes don't insert
-                                    Log.d(TAG,"erreur de mise a jour les donnes");
+                                    Log.d(TAG, "erreur de mise a jour les donnes");
                                 }
 
 
@@ -152,7 +156,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
                             @Override
                             public void onErrorResponse(VolleyError error) {
                                 // TODO: Handle error
-                                Log.d(TAG,"erreur de Volley "+error.getLocalizedMessage());
+                                Log.d(TAG, "erreur de Volley " + error.getLocalizedMessage());
 
                             }
                         });
@@ -164,7 +168,6 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
                         queue.add(jsonObjectRequest);
 
 
-
                     }
 
                 }
@@ -173,15 +176,12 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
 
         locationRequest();
         getLocationPermission();
-        if(mLocationPermissionGranted)
-        {
+        if (mLocationPermissionGranted) {
             isGPSEnabled();
-            if(gps_enabled)
-            {
+            if (gps_enabled) {
                 initMap();
             }
         }
-
 
 
     }//end of create()
@@ -200,11 +200,11 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
 
     private void moveCamera(LatLng latLng, float zoom) {
 
-        if(markerOptions!=null)
-            markerOptions= new MarkerOptions();
+
+        markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
-        mMap.addMarker(markerOptions);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom - 4));
+        marker = mMap.addMarker(markerOptions);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
     }//end moveCamera()
 
     @Override
@@ -221,8 +221,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     private boolean isGPSEnabled() {
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (locationManager != null)
-        {
+        if (locationManager != null) {
 
             if (gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
                 return gps_enabled;
@@ -249,11 +248,9 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case Constants.GPS_REQUEST_CODE:
-            {
+            case Constants.GPS_REQUEST_CODE: {
 
-                if(gps_enabled=isGPSEnabled())
-                {
+                if (gps_enabled = isGPSEnabled()) {
                     initMap();
                 }
                 break;
@@ -261,17 +258,15 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
         }
     }//end of onActivityResult()
 
-    public void showDirection(View view)
-        {
-            // destination=destinationDB.getDestination();
-            Intent intent=new Intent(this,ChooseDestinationLocation.class);
-            intent.putExtra(TAG,TAG);
-            intent.putExtra("origin",origin);
+    public void showDirection(View view) {
+        // destination=destinationDB.getDestination();
+        Intent intent = new Intent(this, ChooseDestinationLocation.class);
+        intent.putExtra(TAG, TAG);
+        intent.putExtra("origin", origin);
 
-            startActivity(intent);
+        startActivity(intent);
 
-       }//end of showDirection
-
+    }//end of showDirection
 
 
     private void getLocationPermission() {
@@ -280,8 +275,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
-        {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
         } else {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, Constants.REQUEST_FINE_LOCATION);
@@ -289,27 +283,23 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     }//end of getLocationPermission
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         mLocationPermissionGranted = false;
-        switch (requestCode)
-        {
-            case Constants.REQUEST_FINE_LOCATION:
-            {
+        switch (requestCode) {
+            case Constants.REQUEST_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                }
-                else
+                } else
                     getLocationPermission();
             }
         }
 
     }//end of onRequestPermissionsResult(...);
+
     //location request class
-    private void locationRequest()
-    {
+    private void locationRequest() {
         locationRequest = new LocationRequest();
         locationRequest.setInterval(Constants.UPDATE_INTERVAL); //use a value fo about 10 to 15s for a real app
         locationRequest.setFastestInterval(Constants.FASTEST_INTERVAL);
@@ -320,6 +310,16 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     private void startLocationUpdates() {
 
         try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
             mFusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, null);
         }
         catch (NullPointerException e)
