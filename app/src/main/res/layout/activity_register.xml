@@ -15,12 +15,12 @@
         android:orientation="vertical"
         android:layout_gravity="center"
         >
+
         <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:src="@drawable/transportation_logo"
+            android:layout_width="112dp"
+            android:layout_height="88dp"
             android:layout_gravity="center"
-            />
+            android:src="@drawable/transportation_logo" />
 
         <EditText
             android:id="@+id/fullname"
@@ -94,7 +94,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="15dp"
-            android:background="@drawable/edit"
+            android:background="@drawable/input"
             android:drawableLeft="@drawable/ic_lock_black_24dp"
             android:drawablePadding="10dp"
             android:elevation="2dp"
@@ -103,6 +103,24 @@
             android:minHeight="48dp"
             android:padding="10dp"
             android:textColorHint="@color/forText" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Switch
+                android:id="@+id/switch_admin"
+                android:layout_width="300dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="15dp"
+                android:layout_weight="1"
+                android:background="@drawable/input"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp"
+                android:text="Admin"
+                android:textColor="@color/forText" />
+        </LinearLayout>
 
         <Button
             android:layout_width="250dp"
