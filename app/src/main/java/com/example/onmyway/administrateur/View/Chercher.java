@@ -3,6 +3,7 @@ package com.example.onmyway.administrateur.View;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -11,11 +12,21 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.onmyway.General.Login;
 import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
+import com.example.onmyway.User.View.HomeUser;
 import com.example.onmyway.Utils.CustomToast;
 import com.example.onmyway.Utils.DialogMsg;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -27,6 +38,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 public class Chercher extends AppCompatActivity {
@@ -60,10 +74,6 @@ public class Chercher extends AppCompatActivity {
         dialogMsg=new DialogMsg();
 
 
-//on va utiliser cet objet pour les requetes comme sql
-        refUserData= FirebaseDatabase.getInstance().getReference().child(getString(R.string.UserData));
-        locationRef= FirebaseDatabase.getInstance().getReference().child(getResources().getString(R.string.OnlineUserLocation));
-
         chercherV=findViewById(R.id.search);
         fullnameV=findViewById(R.id.fullname);
         cinV=findViewById(R.id.cin);
@@ -78,6 +88,8 @@ public class Chercher extends AppCompatActivity {
 
         if(users.size()==0)
         {
+
+
 
             ref= FirebaseDatabase.getInstance().getReference().child(getResources().getString(R.string.UserData));
 
@@ -130,7 +142,7 @@ public class Chercher extends AppCompatActivity {
             if (user == null)
             {
 
-                CustomToast.toast(this, "vous n'avez aucun cheuffaur");
+                CustomToast.toast(this, "vous n'avez pas ce cheuffaur");
 
                 return;
             }
@@ -152,14 +164,9 @@ public class Chercher extends AppCompatActivity {
     }//end of chercher user
 
     public void supprimerUser(View view) {
-        dialogMsg.attendre(this,"Supprimer","Chercher user");
-        userDB.deleteUser(keyWord.toLowerCase());
-        findUserInFireBaseByCin(true);
 
-        fullnameV.setVisibility(View.GONE);
-        cinV.setVisibility(View.GONE);
-        emailV.setVisibility(View.GONE);
-        operationV.setVisibility(View.GONE);
+        findUserInFireBaseByCin(keyWord,true);
+
     }
     private String getCinFromIntent()
     {
@@ -170,71 +177,70 @@ public class Chercher extends AppCompatActivity {
 
     }
     public void afficherSurMap(View view) {
-
-        findUserInFireBaseByCin(false);
+        findUserInFireBaseByCin(keyWord,false);
     }
 
 
     //this boolean is used for to detect if we are going to show on map(false) or going to delete user(true)
-    private void findUserInFireBaseByCin(final boolean delete)
+    private void findUserInFireBaseByCin(String cin,final boolean delete)
     {
-        Query query=null;
-            query=refUserData.orderByChild("id").equalTo(keyWord);
 
         dialogMsg.attendre(this,"Rechercher....","veuillez attende....");
+        String url;
+        User searchUser = userDB.findUserByCin(cin.toUpperCase());
 
-            query.addValueEventListener(new ValueEventListener() {
+        if (delete){
 
+            if("yes".equals(searchUser.getAdmin())){
+                Toast.makeText(this, "Vous n'avez pas le droit de supprimer "+searchUser.getfullName(), Toast.LENGTH_SHORT).show();
+                dialogMsg.hideDialog();
+                return;
+            }
+
+           url= "https://goapppfe.000webhostapp.com/Suppression.php?cin="+cin.toUpperCase();
+            Log.d(TAG,url);
+            RequestQueue queue = Volley.newRequestQueue(this);
+            StringRequest stringRequest=new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
                 @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                    for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                        if (snapshot.exists()) {
-
-                            idUserInFireBase = snapshot.getKey();
-                            if (delete) {
-                                User deleteUser = snapshot.getValue(User.class);
-                                CustomFirebase.getUserAuth().signOut();
-                                CustomFirebase.DeleteUser(deleteUser.getEmail(), deleteUser.getPassword());
-                                refUserData.child(idUserInFireBase).removeValue();
-                                CustomFirebase.getUserAuth().signInWithEmailAndPassword(Administrateur.email, Administrateur.password)
-                                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                                startActivity(new Intent(Chercher.this, Home.class));
-                                                finish();
-
-                                            }
-                                        });
-
-                                dialogMsg.hideDialog();
-                                return;
-                            }
-                            dialogMsg.hideDialog();
-
-                            Intent intent = new Intent(Chercher.this, MapsActivity.class);
-                            intent.putExtra("cin", keyWord);
-                            intent.putExtra("id", idUserInFireBase);
-                            startActivity(intent);
-
-
-
-                        }//end of test if snapshot.exist()
-
-                        dialogMsg.hideDialog();
-
-                    }//end of for loop
-
-
-                }//end of DataChange()
-
+                public void onResponse(String response) {
+                    //todo : handle erreur of return of delete user
+                    Log.d(TAG,response.toString());
+                    dialogMsg.hideDialog();
+                    if ("yes".equals(response)){
+                        userDB.deleteUser(keyWord.toLowerCase());
+                        fullnameV.setVisibility(View.GONE);
+                        cinV.setVisibility(View.GONE);
+                        emailV.setVisibility(View.GONE);
+                        operationV.setVisibility(View.GONE);
+                        chercherV.setText("");
+                    }
+                    else {
+                        Log.d(TAG,"on ne peut pas supprimer le client");
+                    }
+                }
+            }, new Response.ErrorListener() {
                 @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Toast.makeText(Chercher.this, "Veuillez verfier votre connection", Toast.LENGTH_SHORT).show();
-                    progressDialog.dismiss();
-
+                public void onErrorResponse(VolleyError error) {
+                    dialogMsg.hideDialog();
+                    Log.d(TAG,"erreur "+error.getLocalizedMessage());
                 }
             });
+
+
+            stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    60000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            queue.add(stringRequest);
+
+
+        }
+        else{
+            dialogMsg.hideDialog();
+            Intent intent = new Intent(Chercher.this, MapsActivity.class);
+            intent.putExtra("cin", keyWord);
+            startActivity(intent);
+        }
 
     }
     @Override
