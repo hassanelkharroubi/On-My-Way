@@ -11,6 +11,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.example.onmyway.General.Login;
 import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
+import com.example.onmyway.Models.SaveUser;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 
@@ -18,11 +19,14 @@ import com.example.onmyway.R;
 public class Home extends AppCompatActivity {
 
     private static final String TAG = "Home";
+    private SaveUser mSaveUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        mSaveUser=new SaveUser(this);
 
 
         TextView textView1 = findViewById(R.id.wlcm);
@@ -30,10 +34,9 @@ public class Home extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("Accueil");
-        textView1.setText(new UserDB(this).getAllUsers().get(0).getfullName());
+        textView1.setText(mSaveUser.getUser().getfullName());
 
     }
-
 
     public void ajouter(View view) {
         startActivity(new Intent(this, RegisterActivity.class));
@@ -50,7 +53,7 @@ public class Home extends AppCompatActivity {
     }
 
     public void signOut(View view) {
-        CustomFirebase.getUserAuth().signOut();
+        mSaveUser.disconnect();
         startActivity(new Intent(this, Login.class));
         finish();
     }
