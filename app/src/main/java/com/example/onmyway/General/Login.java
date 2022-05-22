@@ -30,6 +30,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.onmyway.Models.Administrateur;
 import com.example.onmyway.Models.CustomFirebase;
+import com.example.onmyway.Models.SaveUser;
 import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
@@ -62,16 +63,19 @@ public class Login extends AppCompatActivity {
     private String email;
     private EditText editTextEmail;
     private EditText editTextPassword;
-
-
     private DialogMsg dialogMsg=new DialogMsg();
     private boolean gps_enabled=false;
     private boolean mLocationPermissionGranted=false;
-
+    private SaveUser mSaveUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        mSaveUser=new SaveUser(this);
+        User user=mSaveUser.getUser();
+
+
 
         Log.d(TAG,"inside Login");
         if (!checkGooglePlayServices())
@@ -79,10 +83,10 @@ public class Login extends AppCompatActivity {
             Log.d(TAG, "google play services are not correct");
 
         //getLocationPermission();
-        UserDB userDB=new UserDB(Login.this);
-        ArrayList<User> users=userDB.getAllUsers();
-        if (users.size()>0){
-            if (users.get(0).getAdmin().equals("yes")){
+
+        if (user.getId()!=null){
+
+            if (user.getAdmin().equals("yes")){
                 Intent intent=new Intent(Login.this, Home.class);
                 startActivity(intent);
                 finish();
@@ -118,6 +122,7 @@ public class Login extends AppCompatActivity {
         }
 
         dialogMsg.attendre(this,"Verification","Veuillez attendre ");
+        Log.d(TAG,"all data are ok ");
 
 
         RequestQueue queue = Volley.newRequestQueue(this);
@@ -140,15 +145,17 @@ public class Login extends AppCompatActivity {
                                 String password=response.getString("Password");
                                 String admin=response.getString("admin");
                                 User user=new User(fullname,email,password,cin,admin);
-                                UserDB userDB=new UserDB(Login.this);
-                                userDB.addUser(user);
+
                                 if (admin.equals("yes")){
+
+                                    mSaveUser.setUser(user);
                                     Intent intent=new Intent(Login.this, Home.class);
                                     startActivity(intent);
                                     finish();
 
                                 }
                                 else{
+                                    mSaveUser.setUser(user);
                                     Intent intent=new Intent(Login.this, HomeUser.class);
                                     startActivity(intent);
                                     finish();

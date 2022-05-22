@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat;
 import com.example.onmyway.General.Login;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.DestinationDB;
+import com.example.onmyway.Models.SaveUser;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.CheckLogin;
@@ -50,6 +51,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
     boolean gps_enabled = false;
     private Button startB;
     LatLng myLocation;
+    private SaveUser mSaveUser;
 
     //loaction permission;
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -60,6 +62,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_user);
+        mSaveUser=new SaveUser(this);
 
         Log.d(TAG, "hello from HomeUser");
 
@@ -100,7 +103,7 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         }
 
         TextView fullnameV = findViewById(R.id.fullname);
-        fullnameV.setText("Bienvenue Mr. " + new UserDB(this).getAllUsers().get(0).getfullName());
+        fullnameV.setText("Bienvenue Mr. " + mSaveUser.getUser().getfullName());
 
         addressV = findViewById(R.id.address);
         addressV.setVisibility(View.GONE);
@@ -313,8 +316,8 @@ public class HomeUser extends AppCompatActivity implements OnMapReadyCallback {
         if (item.getItemId() == R.id.signOut) {
 
 
-            UserDB db=new UserDB(this);
-            db.deleteUser(db.getAllUsers().get(0).getId());
+
+            mSaveUser.disconnect();
             startActivity(new Intent(this, Login.class));
             finish();
 
