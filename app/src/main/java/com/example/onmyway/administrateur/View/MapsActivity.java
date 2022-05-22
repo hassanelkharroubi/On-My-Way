@@ -1,19 +1,30 @@
 package com.example.onmyway.administrateur.View;
 
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.GeoPoint;
+import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.Utils.Constants;
@@ -30,6 +41,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Objects;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -44,10 +59,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //for dialog msg
     private DialogMsg dialogMsg;
-    private String userAuthKey=null;
     private GeoPoint geoPoint;
     private String fullName;
     private UserDB userDB;
+    private  String cin;
 
 //****************************************************here start methods*********************************************************
 
@@ -67,25 +82,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         initMap();
 
-
         //***********for dataBase fire base and dataBase authentification***************
 
         geoPoint=new GeoPoint();
         userDB = new UserDB(this);
 
 
-
-
         //test for intent is gaming from Chercher(show user om map)
 
         Intent intent=getIntent();
         fullName = userDB.findUserByCin(intent.getStringExtra("cin").toUpperCase()).getfullName();
+        cin=userDB.findUserByCin(intent.getStringExtra("cin").toUpperCase()).getId();
 
-
-            userAuthKey=intent.getStringExtra("id");
-
-            Log.d(TAG,userAuthKey);
-            showUserOnMap();
+       // showUserOnMap();
 
 
 
@@ -94,39 +103,65 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void showUserOnMap() {
 
-        Log.d(TAG,"inside showUserOnMap+"+userAuthKey);
         Log.d(TAG, "full name= " + fullName + "");
 
 
         dialogMsg.attendre(this, "Recherche", "En train de chercher la position de chauffeur");
 
-        CustomFirebase.getDataRefLevel1(getString(R.string.OnlineUserLocation))
-                .child(userAuthKey).addValueEventListener(new ValueEventListener() {
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+// Request a string response from the provided URL.
+        String url = "https://goapppfe.000webhostapp.com/get_coordinate.php?cin="+cin;
+        Log.d(TAG,url);
+
+
+        JsonObjectRequest request = new JsonObjectRequest(url, new Response.Listener<JSONObject>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            public void onResponse(JSONObject response) {
+                Log.d(TAG,response.toString());
                 dialogMsg.hideDialog();
 
-                if (!dataSnapshot.exists()) {
+                try {
 
-                    CustomToast.toast(MapsActivity.this, "ce chauffeur n'pas commencer le travail");
-                    return;
+                    if (response.has("CIN")){
+                        String cin=response.getString("CIN");
+                        double latitude=response.getDouble("latitude");
+                        double longitude=response.getDouble("longitude");
+                        double speed=response.getDouble("speed");
+                        double time=response.getDouble("time");
+
+                        geoPoint.setLatitude(latitude);
+                        geoPoint.setLongitude(longitude);
+                        geoPoint.setSpeed(speed);
+                        geoPoint.setTime(time);
+                        moveCamera(new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude()), Constants.DEFAULT_ZOOM);
+
+                    }else{
+                        CustomToast.toast(MapsActivity.this, "Utilisateur hors travaille ");
+                    }
+
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    dialogMsg.hideDialog();
+
                 }
-
-
-                Log.d(TAG,"children ="+dataSnapshot.toString());
-                geoPoint=dataSnapshot.getValue(GeoPoint.class);
-                moveCamera(new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude()), Constants.DEFAULT_ZOOM);
-
             }
-
+        }, new Response.ErrorListener() {
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                CustomToast.toast(MapsActivity.this, "veuillez verfier votre connection ");
+            public void onErrorResponse(VolleyError error) {
+                Log.d("error",error.toString());
                 dialogMsg.hideDialog();
-
+                Log.d(TAG,"erreur de Volley "+error.getLocalizedMessage());
+                CustomToast.toast(MapsActivity.this, "veuillez verfier votre connection ");
             }
-        });//end of  mDatabase.child(userAuthKey)
-
+        });
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                60000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(request);
 
 
     }//end of showOmMap()
@@ -167,6 +202,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+        showUserOnMap();
         Log.d(TAG, "OnResume");
         if(dialogMsg!=null)
          dialogMsg.hideDialog();
@@ -183,6 +219,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.toolbar, menu);
         menu.removeItem(R.id.enligne);
+        menu.removeItem(R.id.actualiser);
         return super.onCreateOptionsMenu(menu);
     }
     //pour selection un element de toolbar
