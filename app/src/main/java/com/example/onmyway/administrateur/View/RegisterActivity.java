@@ -11,6 +11,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Switch;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -57,6 +59,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private String email;
     private EditText editTextEmail;
+    private Switch mSwitch;
 
     private String password;
     private EditText editTextPassword;
@@ -64,8 +67,6 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText editTextConfirmPassword;
 
     private User user;
-    private FirebaseAuth mAuth;
-    private DatabaseReference myRef;
 
     //for sqlite data base
     private UserDB userDB;
@@ -78,8 +79,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_register);
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference(getResources().getString(R.string.UserData));
+
         userDB=new UserDB(this);
         //start new Thread to check network state and internet acess
 
@@ -91,15 +91,13 @@ public class RegisterActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setTitle(getResources().getString(R.string.driver));
 
-        // Initialize Firebase Auth
-
-        mAuth= CustomFirebase.getUserAuth();
 
         editTextEmail=findViewById(R.id.email);
         editTextPassword=findViewById(R.id.password);
         editTextConfirmPassword=findViewById(R.id.confirmpassword);
         editTextFullName=findViewById(R.id.fullname);
         editTextCin=findViewById(R.id.cin);
+        mSwitch=findViewById(R.id.switch_admin);
 
     }
 
@@ -109,6 +107,7 @@ public class RegisterActivity extends AppCompatActivity {
         MenuInflater inflater=getMenuInflater();
         inflater.inflate(R.menu.toolbar,menu);
         menu.removeItem(R.id.ajouter);
+        menu.removeItem(R.id.actualiser);
         return super.onCreateOptionsMenu(menu);
 }
 
@@ -124,7 +123,7 @@ public class RegisterActivity extends AppCompatActivity {
                     "cin=" +user.getId()+
                     "&email=" +user.getEmail()+
                     "&fullname=" +user.getfullName()+
-                    "&admin=no" +
+                    "&admin="+user.getAdmin() +
                     "&passowrd="+user.getPassword();
             Log.d(TAG,url);
 
@@ -135,6 +134,9 @@ public class RegisterActivity extends AppCompatActivity {
 
                     if (response.has("success")){
                         //todo : informer admin que l'utilisateur a ete bien ajoute
+                        userDB.addUser(user);
+                        Log.d(TAG,"user has been add");
+                        Toast.makeText(RegisterActivity.this, "success", Toast.LENGTH_SHORT).show();
                         //les donnes sont correct
 
                     }
@@ -171,6 +173,11 @@ public class RegisterActivity extends AppCompatActivity {
 
         if(item.getItemId()==android.R.id.home)
             startActivity(new Intent(this, Home.class));
+        if(item.getItemId()==R.id.enligne)
+            startActivity(new Intent(this, ListAllUser.class));
+        if(item.getItemId()==R.id.chercher)
+            startActivity(new Intent(this, Chercher.class));
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -195,15 +202,19 @@ public class RegisterActivity extends AppCompatActivity {
        if(!cin.isEmpty() && !fullName.isEmpty() && isEmail(email)
                && !password.isEmpty() && password.equals(confirmPassword))
        {
-           user = new User(fullName, email.toLowerCase(), password, cin.toUpperCase());
+          boolean s= mSwitch.isChecked();
+          if (s){
+              user = new User(fullName, email.toLowerCase(), password, cin.toUpperCase(),"yes");
+          }
+          else{
+              user = new User(fullName, email.toLowerCase(), password, cin.toUpperCase(),"no");
+          }
            return true;
        }
        return  false;
 
 
     }
-
-
 
 
 }
