@@ -79,6 +79,14 @@ public class UserDB extends SQLiteOpenHelper {
 
     }
 
+    public int delletAllusers(){
+        SQLiteDatabase db=getWritableDatabase();
+        int deleted=db.delete(TABLE,null,null);
+        db.close();
+
+        return deleted;
+
+    }
     public User findUserByCin(final String cin)
 
     {
@@ -112,6 +120,7 @@ public class UserDB extends SQLiteOpenHelper {
         User user=new User();
 
         Cursor cursor= db.rawQuery(query,null);
+
         if(cursor.moveToFirst())
         {
 
