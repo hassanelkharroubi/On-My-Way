@@ -55,8 +55,7 @@ public class ListAllUser extends AppCompatActivity {
 
     //for sqlite database
     private UserDB userDB;
-    private ArrayList<User> usersFireBase,users;
-    private  User user;
+    private ArrayList<User> users;
     private DialogMsg dialogMsg = new DialogMsg();
 
     @Override
@@ -75,9 +74,9 @@ public class ListAllUser extends AppCompatActivity {
 
         recyclerView=findViewById(R.id.recycler);
         //store user catched from firebase
-        user=new User();
+        User user = new User();
         //add all user from firebase to usersFireBase
-        usersFireBase=new ArrayList<>();
+
         //for local data base(UserDB)
         users=new ArrayList<>();
         userDB=new UserDB(this);
