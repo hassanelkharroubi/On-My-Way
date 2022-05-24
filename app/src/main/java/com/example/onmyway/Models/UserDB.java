@@ -44,8 +44,6 @@ public class UserDB extends SQLiteOpenHelper {
         db.execSQL(request);
 
 
-
-
     }
 
     @Override

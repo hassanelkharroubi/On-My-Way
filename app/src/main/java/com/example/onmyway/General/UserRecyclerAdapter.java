@@ -16,6 +16,8 @@ import com.example.onmyway.R;
 import com.example.onmyway.administrateur.View.Chercher;
 
 import java.util.ArrayList;
+import java.util.List;
+
 public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapter.ViewHolder>{
 
     private ArrayList<User> mUsers;
@@ -70,6 +72,8 @@ public class UserRecyclerAdapter extends RecyclerView.Adapter<UserRecyclerAdapte
         }
 
     }
+
+
 
 }
 
