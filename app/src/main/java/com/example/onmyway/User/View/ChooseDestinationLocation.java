@@ -11,12 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.onmyway.GoogleDirection.FetchURL;
 import com.example.onmyway.GoogleDirection.ShowDirection;
 import com.example.onmyway.GoogleDirection.TaskLoadedCallback;
-import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.DestinationDB;
 import com.example.onmyway.R;
 import com.example.onmyway.Service.GeoCoding;
 import com.example.onmyway.Service.GeoCodingDoneListener;
-import com.example.onmyway.Utils.CheckLogin;
 import com.example.onmyway.Utils.Constants;
 import com.example.onmyway.Utils.CustomToast;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -130,10 +128,6 @@ public class ChooseDestinationLocation extends AppCompatActivity implements OnMa
     @Override
     public void onTaskDone(String distance,String duration,Object... values) {
 
-        String userkey = CustomFirebase.getCurrentUser().getUid();
-
-        CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination)).child(userkey).child("duration").setValue(duration);
-        CustomFirebase.getDataRefLevel1(getString(R.string.DurationToDestination)).child(userkey).child("distance").setValue(distance);
         CustomToast.toast(this, "Il reste " + duration);
 
         if(currentPolyline!=null) {

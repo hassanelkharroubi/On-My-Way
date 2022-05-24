@@ -25,12 +25,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.onmyway.General.Login;
-import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.DestinationDB;
 import com.example.onmyway.Models.SaveUser;
-import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
-import com.example.onmyway.Utils.CheckLogin;
 import com.example.onmyway.Utils.Constants;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;

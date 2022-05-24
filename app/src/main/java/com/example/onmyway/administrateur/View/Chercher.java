@@ -9,7 +9,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -17,30 +16,14 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.onmyway.General.Login;
-import com.example.onmyway.Models.Administrateur;
-import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.User;
 import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
-import com.example.onmyway.User.View.HomeUser;
 import com.example.onmyway.Utils.CustomToast;
 import com.example.onmyway.Utils.DialogMsg;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 public class Chercher extends AppCompatActivity {
@@ -56,9 +39,6 @@ public class Chercher extends AppCompatActivity {
     private String idUserInFireBase;
 
     private LinearLayout operationV;
-    private DatabaseReference ref;
-    private DatabaseReference refUserData;
-    private DatabaseReference locationRef;
     ArrayList<User> users;
     private User user;
     UserDB userDB;
@@ -84,48 +64,7 @@ public class Chercher extends AppCompatActivity {
         user=new User();
         users=new ArrayList<>();
         users=userDB.getAllUsers();
-        idUserInFireBase=null;
 
-        if(users.size()==0)
-        {
-
-
-
-            ref= FirebaseDatabase.getInstance().getReference().child(getResources().getString(R.string.UserData));
-
-            ref.addValueEventListener(new ValueEventListener(){
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot)
-                {
-                    for (DataSnapshot userSnapshot: dataSnapshot.getChildren())
-                    {
-                        if(userSnapshot.exists())
-                        {
-                            user = userSnapshot.getValue(User.class);
-                            //save users in UserDB
-                            userDB.addUser(user);
-                            //add to array users
-                            users.add(user);
-
-                        }
-                        else
-                        {
-                            Toast.makeText(Chercher.this, "user data n'existe pas", Toast.LENGTH_SHORT).show();
-                            progressDialog.dismiss();
-                        }
-
-
-                    }
-
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
-
-        }
 
     }
 

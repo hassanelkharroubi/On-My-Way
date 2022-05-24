@@ -26,13 +26,9 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.onmyway.Models.Administrateur;
-import com.example.onmyway.Models.CustomFirebase;
 import com.example.onmyway.Models.SaveUser;
 import com.example.onmyway.Models.User;
-import com.example.onmyway.Models.UserDB;
 import com.example.onmyway.R;
 import com.example.onmyway.User.View.HomeUser;
 import com.example.onmyway.Utils.Constants;
@@ -41,21 +37,9 @@ import com.example.onmyway.Utils.DialogMsg;
 import com.example.onmyway.administrateur.View.Home;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.Query;
-import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 
 public class Login extends AppCompatActivity {
     private static final String TAG="Login";
