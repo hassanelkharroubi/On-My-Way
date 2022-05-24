@@ -74,7 +74,6 @@ public class ListAllUser extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         recyclerView=findViewById(R.id.recycler);
-
         //store user catched from firebase
         user=new User();
         //add all user from firebase to usersFireBase
@@ -82,16 +81,23 @@ public class ListAllUser extends AppCompatActivity {
         //for local data base(UserDB)
         users=new ArrayList<>();
         userDB=new UserDB(this);
-        //readFromDataBase();
+        users=userDB.getAllUsers();
+
+        adapter = new UserRecyclerAdapter(users, ListAllUser.this);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(ListAllUser.this));
+
+        if (users.size()==0) readFromDataBase();
     }
 
     public void readFromDataBase()
     {
-        users.clear();
+        if (users.size()>0){
+            users.clear();
+        }
         users=userDB.getAllUsers();
         if(users.size()==0)
         {
-
             progressDialog=new ProgressDialog(this);
             //show progress dialog
             dialogMsg.attendre(this, "Recherche", "Veuillez attendre .....");
@@ -116,11 +122,12 @@ public class ListAllUser extends AppCompatActivity {
                             String password=jsonobject.getString("Password");
                             String admin=jsonobject.getString("admin");
                             User user=new User(fullname,email,password,cin,admin);
-                            usersFireBase.add(user);
+                            users.add(user);
 
                         }
-                        userDB.addUsers(usersFireBase);
-                        setAdapter(usersFireBase);
+                        userDB.addUsers(users);
+                        adapter.notifyDataSetChanged();
+                        //setAdapter();
 
 
                     } catch (JSONException e) {
@@ -144,19 +151,20 @@ public class ListAllUser extends AppCompatActivity {
 
         }//if users array is not 0
         else {
-            setAdapter(users);
+            adapter.notifyDataSetChanged();
+            //setAdapter();
         }
 
 
     }
 
-    private void setAdapter(ArrayList<User> list)
+    private void setAdapter()
     {
-         adapter = new UserRecyclerAdapter(list, ListAllUser.this);
-
-        recyclerView.setAdapter(adapter);
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(ListAllUser.this));
+        runOnUiThread(new Runnable() {
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
 
     }
 
@@ -188,9 +196,8 @@ public class ListAllUser extends AppCompatActivity {
             startActivity(new Intent(this, Chercher.class));
         if (item.getItemId()==R.id.actualiser){
             int nbrow=userDB.delletAllusers();
-
+            users.clear();
             Log.d(TAG,"numbe rof rows deleted "+nbrow+" ");
-
             readFromDataBase();
         }
         return super.onOptionsItemSelected(item);
