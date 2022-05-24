@@ -3,8 +3,23 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/drawable/edit.xml" value="0.1195" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/drawable/ic_email_black_24dp.xml" value="0.1195" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/drawable/ic_lock_black_24dp.xml" value="0.1195" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/drawable/ic_person.xml" value="0.1195" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/drawable/input.xml" value="0.1195" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/drawable/text_field.xml" value="0.1195" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_chercher.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_home.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_home_user.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_list_all_user.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_login.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_main.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_maps.xml" value="0.20416666666666666" />
         <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_register.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/activity_user_position.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/layout_user_list_item.xml" value="0.20416666666666666" />
+        <entry key="..\:/Users/PC/AndroidStudioProjects/FinPFE/app/src/main/res/layout/toolbar_layout.xml" value="0.20416666666666666" />
       </map>
     </option>
   </component>

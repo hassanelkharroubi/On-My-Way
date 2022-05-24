@@ -14,14 +14,14 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:layout_gravity="center"
-        app:srcCompat="@drawable/transportation_logo" />
+        app:srcCompat="@drawable/logo" />
 
     <LinearLayout
         android:id="@+id/btn"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="10dp"
-        android:background="@color/colorPrimary"
+        android:background="@color/Blue_Dark"
         android:orientation="vertical">
 
         <TextView
@@ -90,6 +90,7 @@
             android:background="@drawable/edit"
             android:onClick="chercher"
             android:text="Chercher" />
+
         <Button
 
             android:layout_width="match_parent"
@@ -101,6 +102,7 @@
             android:background="@drawable/edit"
             android:onClick="transporter"
             android:text="chauffeurs" />
+
         <Button
 
             android:layout_width="match_parent"

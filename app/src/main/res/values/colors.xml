@@ -6,4 +6,6 @@
     <color name="forText">#ee6002</color>
     <color name="Black">#111</color>
     <color name="Grey">#555</color>
+    <color name="Blue_Dark">#0334B6</color>
+    <color name="Red">#B41603</color>
 </resources>
