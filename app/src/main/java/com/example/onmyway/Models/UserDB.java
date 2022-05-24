@@ -3,6 +3,7 @@ package com.example.onmyway.Models;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -65,7 +66,13 @@ public class UserDB extends SQLiteOpenHelper {
         data.put(EMAIL,user.getEmail());
         data.put(PASSWORD,user.getPassword());
         data.put(ADMIN,user.getAdmin());
-        db.insert(TABLE,null,data);
+        try {
+            db.insert(TABLE,null,data);
+
+        }catch (SQLiteConstraintException e){
+            Log.d(TAG,e.getLocalizedMessage()+"\n "+user.getId()+" already added");
+        }
+
     }
 
 
@@ -83,9 +90,7 @@ public class UserDB extends SQLiteOpenHelper {
         SQLiteDatabase db=getWritableDatabase();
         int deleted=db.delete(TABLE,null,null);
         db.close();
-
         return deleted;
-
     }
     public User findUserByCin(final String cin)
 
@@ -98,11 +103,13 @@ public class UserDB extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
 
             user = new User();
-            user.setEmail(cursor.getString(cursor.getColumnIndex(EMAIL)));
-            user.setfullName(cursor.getString(cursor.getColumnIndex(NAME)));
-            user.setId(cursor.getString(cursor.getColumnIndex(ID)));
-            user.setPassword(cursor.getString(cursor.getColumnIndex(PASSWORD)));
-            user.setAdmin(cursor.getString(cursor.getColumnIndex(ADMIN)));
+
+            user.setId(cursor.getString(0));
+            user.setfullName(cursor.getString(1));
+            user.setEmail( cursor.getString(2));
+            user.setPassword( cursor.getString(3));
+            user.setAdmin(cursor.getString(4));
+
         }
         db.close();
         cursor.close();
@@ -121,15 +128,20 @@ public class UserDB extends SQLiteOpenHelper {
 
         Cursor cursor= db.rawQuery(query,null);
 
+        for (int k=0;k<cursor.getColumnCount();k++){
+            Log.d(TAG,cursor.getColumnNames()[k]);
+        }
+
+
         if(cursor.moveToFirst())
         {
 
             do {
-                user.setId(cursor.getString(cursor.getColumnIndex(ID)));
-                user.setfullName(cursor.getString(cursor.getColumnIndex(NAME)));
-                user.setEmail( cursor.getString(cursor.getColumnIndex(EMAIL)));
-                user.setPassword( cursor.getString(cursor.getColumnIndex(PASSWORD)));
-                user.setAdmin(cursor.getString(cursor.getColumnIndex(ADMIN)));
+                user.setId(cursor.getString(0));
+                user.setfullName(cursor.getString(1));
+                user.setEmail( cursor.getString(2));
+                user.setPassword( cursor.getString(3));
+                user.setAdmin(cursor.getString(4));
 
                 users.add(user);
                 //we have change reference of user or we will be add the same user to last position
