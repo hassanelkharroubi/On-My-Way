@@ -3,6 +3,7 @@ package com.example.onmyway.Models;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -65,7 +66,13 @@ public class UserDB extends SQLiteOpenHelper {
         data.put(EMAIL,user.getEmail());
         data.put(PASSWORD,user.getPassword());
         data.put(ADMIN,user.getAdmin());
-        db.insert(TABLE,null,data);
+        try {
+            db.insert(TABLE,null,data);
+
+        }catch (SQLiteConstraintException e){
+            Log.d(TAG,e.getLocalizedMessage()+"\n "+user.getId()+" already added");
+        }
+
     }
 
 
