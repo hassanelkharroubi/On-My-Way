@@ -20,60 +20,57 @@
         <ImageView
             android:layout_width="200dp"
             android:layout_height="200dp"
-            android:src="@drawable/transportation_logo"
+            android:src="@drawable/logo"
             android:layout_gravity="center"
             />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ON MY WAY"
-            android:textColor="@color/forText"
-            android:textStyle="bold"
             android:layout_gravity="center"
             android:layout_marginTop="10dp"
+            android:text="Go App"
+            android:textColor="@color/Red"
             android:textSize="30dp"
-            />
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/email"
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:inputType="textEmailAddress"
-            android:hint="@string/username"
-            android:textColorHint="@color/forText"
             android:layout_gravity="center"
-            android:drawableLeft="@drawable/ic_person"
-            android:drawablePadding="10dp"
             android:layout_marginTop="55dp"
             android:background="@drawable/edit"
+            android:drawableLeft="@drawable/ic_person"
+            android:drawablePadding="10dp"
+            android:hint="@string/username"
+            android:inputType="textEmailAddress"
             android:padding="13dp"
-            />
+            android:textColorHint="@color/Blue_Dark" />
 
         <EditText
             android:id="@+id/password"
             android:layout_width="300dp"
             android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:hint="@string/password"
-            android:textColorHint="@color/forText"
             android:layout_gravity="center"
-            android:drawableLeft="@drawable/ic_lock_black_24dp"
-            android:drawablePadding="10dp"
             android:layout_marginTop="15dp"
             android:background="@drawable/edit"
+            android:drawableLeft="@drawable/ic_lock_black_24dp"
+            android:drawablePadding="10dp"
+            android:hint="@string/password"
+            android:inputType="textPassword"
             android:padding="13dp"
-            />
+            android:textColorHint="@color/Blue_Dark" />
 
         <Button
             android:layout_width="200dp"
             android:layout_height="50dp"
             android:layout_gravity="center"
-            android:text="Login"
-            android:textColor="#fff"
             android:layout_marginTop="15dp"
-            android:background="@drawable/button"
+            android:background="@color/ic_launcher_background"
             android:onClick="login"
-            />
+            android:text="Login"
+            android:textColor="#4E342E" />
 
 
     </LinearLayout>

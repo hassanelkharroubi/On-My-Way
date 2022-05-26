@@ -14,11 +14,11 @@
         android:layout_height="wrap_content"
         android:background="@drawable/text_field"
         android:ems="10"
-        android:textColor="@color/Black"
         android:paddingLeft="@dimen/padding_left"
         android:paddingTop="@dimen/pading_top"
         android:paddingBottom="@dimen/padding_bottom"
         android:text="@string/fullname"
+        android:textColor="@color/Black"
         android:textSize="18sp"
         android:textStyle="bold" />
 
