@@ -36,6 +36,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -53,6 +55,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String fullName;
     private UserDB userDB;
     private  String cin;
+    private Timer timer;
 
 //****************************************************here start methods*********************************************************
 
@@ -67,6 +70,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setTitle("position de chauffeur");
+
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+
+                showUserOnMap(true);
+            }
+        }, 0, 5000);
 
         dialogMsg=new DialogMsg();
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -91,11 +103,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }//end of onCreate()
 
-    private void showUserOnMap() {
+    private void showUserOnMap(boolean update) {
 
         Log.d(TAG, "full name= " + fullName + "");
 
-
+        if (!update)
         dialogMsg.attendre(this, "Recherche", "En train de chercher la position de chauffeur");
 
 
@@ -192,7 +204,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
-        showUserOnMap();
+        showUserOnMap(false);
         Log.d(TAG, "OnResume");
         if(dialogMsg!=null)
          dialogMsg.hideDialog();
@@ -236,7 +248,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return super.onOptionsItemSelected(item);
     }
 
-
-
-
+    @Override
+    protected void onPause() {
+        super.onPause();
+        timer.cancel();
+    }
 }

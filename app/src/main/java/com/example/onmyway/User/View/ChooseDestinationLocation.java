@@ -135,7 +135,9 @@ public class ChooseDestinationLocation extends AppCompatActivity implements OnMa
             currentPolyline.remove();
         }
        currentPolyline= mMap.addPolyline((PolylineOptions) values[0]);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(origin, Constants.DEFAULT_ZOOM + 10));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(origin, Constants.DEFAULT_ZOOM ));
+        mMap.setOnMapClickListener(null);
+
 
     }//end of onTaskDone();
     @Override

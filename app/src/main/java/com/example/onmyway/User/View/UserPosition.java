@@ -257,6 +257,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
         Intent intent = new Intent(this, ChooseDestinationLocation.class);
         intent.putExtra(TAG, TAG);
         intent.putExtra("origin", origin);
+        Log.d(TAG,"choose Destiniation "+origin);
 
         startActivity(intent);
 
@@ -340,7 +341,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
 
     public void stop(View view)
     {
-        stopService();
+        //stopService();
         stop=true;
         stopLocationUpdates();
         DestinationDB destinationDB = new DestinationDB(this);
@@ -355,7 +356,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
     protected void onResume() {
         super.onResume();
 
-        stopService();
+        //stopService();
         if(gps_enabled=isGPSEnabled())
         {
             startLocationUpdates();
@@ -367,7 +368,7 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
         super.onPause();
         if (!stop) {
             stopLocationUpdates();
-            startService();
+            //startService();
         }
 
     }

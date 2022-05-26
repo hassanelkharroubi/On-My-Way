@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">OnMyWay</string>
-    <string name="google_map_api">AIzaSyByDP4PfrDDqXcIMyWuHXmt3CaOK0xHZi8</string>
+    <string name="google_map_api">AIzaSyADi6RTII0q3jHCCGbOmS6y2Q2ZQxTOS6k</string>
 
-    <string name="server_key">AIzaSyBUMivigczqJ9zupdjCRU5DTk4VA6AkdtM</string>
+    <string name="server_key">AIzaSyADi6RTII0q3jHCCGbOmS6y2Q2ZQxTOS6k</string>
 
 
     <string name="password">Mot de passe</string>

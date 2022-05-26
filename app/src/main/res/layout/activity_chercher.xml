@@ -19,6 +19,7 @@
         android:ems="10"
         android:hint="Chercher par le CIN"
         android:inputType="textPersonName"
+        android:minHeight="48dp"
         android:paddingLeft="10dp"
         android:paddingTop="11dp"
         android:paddingBottom="10dp" />
