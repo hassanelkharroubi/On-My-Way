@@ -59,7 +59,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 //****************************************************here start methods*********************************************************
 
-
     @Override
     protected void onCreate(final Bundle savedInstanceState)
     {
@@ -234,8 +233,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (item.getItemId() == R.id.ajouter)
             startActivity(new Intent(this, RegisterActivity.class));
-
-
         if (item.getItemId() == R.id.suprimer)
             startActivity(new Intent(this, Chercher.class));
 

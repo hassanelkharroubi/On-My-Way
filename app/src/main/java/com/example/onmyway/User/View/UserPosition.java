@@ -24,6 +24,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.onmyway.GoogleDirection.FetchURL;
 import com.example.onmyway.GoogleDirection.ShowDirection;
@@ -346,6 +347,30 @@ public class UserPosition extends FragmentActivity implements OnMapReadyCallback
         stopLocationUpdates();
         DestinationDB destinationDB = new DestinationDB(this);
         destinationDB.deleteDestination();
+        String url="https://goapppfe.000webhostapp.com/delete_coordinate.php?cin="+mCin;
+        RequestQueue queue = Volley.newRequestQueue(UserPosition.this);
+        StringRequest stringRequest=new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                if ("yes".equals(response)){
+                    //todo :
+                    Log.d(TAG,"Coordinate has been deleted for "+mCin);
+                }
+                else{
+                    Log.d(TAG,"coordinate of the has not been deleted");
+                }
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG,"error has been occurs "+error.getLocalizedMessage());
+
+            }
+        });
+
+        queue.add(stringRequest);
+
         startActivity(new Intent(this, HomeUser.class));
         finish();
     }//end of stop()//work is done
